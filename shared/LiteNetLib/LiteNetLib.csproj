@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    LiteNetLib 1.0.1.1 (MIT, https://github.com/RevenantX/LiteNetLib, tag v1.0.1.1) as source code.
+    ONLY change: NetConstants.DefaultWindowSize = 512 (original: 64).
+    The Zenith client uses a LiteNetLib modified this way (ReliableChannel.ctor: windowSize 0x200,
+    ACK packets 69 bytes instead of 13). With the NuGet package the connection stalls as soon as more
+    than 64 packets are in flight (e.g. the ~510 KB initial message from the server).
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>LiteNetLib</AssemblyName>
+    <RootNamespace>LiteNetLib</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>$(DefineConstants);LITENETLIB_UNSAFE</DefineConstants>
+    <Nullable>disable</Nullable>
+    <NoWarn>1701;1702;1705;1591;CS0618;CS8632;SYSLIB0011</NoWarn>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+</Project>

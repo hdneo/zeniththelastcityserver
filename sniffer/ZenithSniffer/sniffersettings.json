@@ -1,0 +1,15 @@
+{
+  "BindAddress": "0.0.0.0",
+  "HttpPort": 80,
+  "HttpsPort": 443,
+  "AdvertiseHost": "127.0.0.1",
+  "UdpPortBase": 27777,
+  "UpstreamDns": [ "1.1.1.1", "8.8.8.8" ],
+  "HostOverrides": {},
+  "RewriteRealmList": true,
+  "OutputDirectory": "captures",
+  "CertificateDirectory": "certs",
+  "VerboseConsole": true,
+  "TextLogMaxBytes": 65536,
+  "QuietComponents": [ 54, 11000 ]
+}

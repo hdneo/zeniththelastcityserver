@@ -1,0 +1,260 @@
+set WellKnownComponentSet = 50  // 5 components
+    54     Improbable.Position
+    58     Improbable.Interest
+    65     Improbable.AuthorityDelegation
+    53     Improbable.Metadata
+    55     Improbable.Persistence
+set DefaultClientSet = 60000  // 3 components
+    2039   Zenith.IngredientStatusComponent
+    2045   Zenith.FishingRodComponent
+    13001  Improbable.Gdk.PlayerLifecycle.PlayerHeartbeatClient
+set DefaultServerSet = 60001  // 105 components
+    58     Improbable.Interest
+    13003  Improbable.Gdk.PlayerLifecycle.OwningWorker
+    13000  Improbable.Gdk.PlayerLifecycle.PlayerCreator
+    13002  Improbable.Gdk.PlayerLifecycle.PlayerHeartbeatServer
+    2026   Zenith.QBIComponent
+    11000  Improbable.Gdk.TransformSynchronization.TransformInternal
+    1019   Zenith.Spawner
+    4043   Zenith.SpatialRouteComponent
+    5006   Zenith.MinimapMarkerSpawner
+    5009   Zenith.MapMarkerAssociation
+    3515   Zenith.Detection
+    3517   Zenith.SpawnerDataComponent
+    2018   Zenith.LoginSystemComponent
+    4008   Zenith.MatchmakingComponent
+    2009   Zenith.EditorCommandComponent
+    5020   Zenith.DayNightWeatherComponent
+    2010   Zenith.CharacterSpawnerComponent
+    1017   Zenith.ItemCatalogComponent
+    4000   Zenith.EnhancementSystemComponent
+    1601   Zenith.Leaderboard
+    2011   Zenith.LootableComponent
+    5002   Zenith.Economy.Vendor
+    1001   Zenith.ActorInfoComponent
+    5011   Zenith.ServerTimeComponent
+    5005   Zenith.DynamicMinimapMarker
+    5008   Zenith.CustomMarkerData
+    3670   Zenith.SpawnedNagivationTarget
+    4018   Zenith.ConvertIDOToSpatialEntity
+    4020   Zenith.InitialRotationComponent
+    2014   Zenith.SpawnableLootComponent
+    4001   Zenith.GrabbableEntityComponent
+    2016   Zenith.OwnershipComponent
+    1087   Zenith.ItemComponent
+    2038   Zenith.IngredientDataComponent
+    3016   Zenith.InitialTransformOwnership
+    4003   Zenith.OwnableEntity
+    3520   Zenith.Gatherable
+    2030   Zenith.ProjectileComponent
+    3506   Zenith.PartyTag
+    1007   Zenith.ActorStatsComponent
+    1010   Zenith.CombatComponent
+    1013   Zenith.VFXComponent
+    1014   Zenith.SFXComponent
+    1016   Zenith.EquipmentComponent
+    1018   Zenith.SpawnedComponent
+    3028   Zenith.IndicatorComponent
+    1002   Zenith.AnimationComponent
+    1050   Zenith.TravellingObjectComponent
+    2028   Zenith.TimeScaleComponent
+    1009   Zenith.ActorStatusEffectsComponent
+    2036   Zenith.CookingStationComponent
+    2043   Zenith.AbstractCraftingStationComponent
+    2029   Zenith.RangedCombatComponent
+    2042   Zenith.FeastComponent
+    3525   Zenith.LocalStateComponent
+    3502   Zenith.PartyMetadataComponent
+    3500   Zenith.PlayerListComponent
+    4015   Zenith.PlayTimelineEntity
+    4021   Zenith.PublicActorStatsComponent
+    2034   Zenith.PublicEventComponent
+    1003   Zenith.GarbageCollectionComponent
+    2012   Zenith.ItemCreatorComponent
+    3100   Zenith.ServerTeleporterComponent
+    4023   Zenith.NOSActivatedComponent
+    4025   Zenith.NOSIntComponent
+    4024   Zenith.NOSFloatComponent
+    4026   Zenith.NOSEventComponent
+    4042   Zenith.NOSStringComponent
+    4046   Zenith.InfiniteInterestComponent
+    5013   Zenith.InstanceStatsComponent
+    4028   Zenith.EntityParentMarker
+    4027   Zenith.BehaviorChunkComponent
+    2044   Zenith.BuildingChunkComponent
+    2050   Zenith.BuildingChunkChildComponent
+    5014   Zenith.Economy.AuctionedObject
+    4029   Zenith.Bug
+    2046   Zenith.FishingStateComponent
+    2047   Zenith.FishingCatchableComponent
+    4031   Zenith.BowComponent
+    4032   Zenith.ArrowComponent
+    4041   Zenith.CyberGadgetComponent
+    4033   Zenith.BeamComponent
+    4034   Zenith.BoStaffComponent
+    4035   Zenith.HookshotComponent
+    4036   Zenith.EntitySpawnerComponent
+    4030   Zenith.CatcherComponent
+    5032   Zenith.PetData
+    5033   Zenith.SummoningComponent
+    8001   Zenith.BoardGameComponent
+    4037   Zenith.SwordComponent
+    7004   Zenith.ToyComponent
+    4038   Zenith.PVPArena
+    9000   Zenith.HarvestToolComponent
+    9001   Zenith.HarvestNodeComponent
+    9002   Zenith.RefiningStationComponent
+    7008   Zenith.InteractiveCraftingStation
+    7005   Zenith.PlannedBuildingStationComponent
+    7006   Zenith.ConditionalHideComponent
+    7007   Zenith.PbcMarkerComponent
+    4039   Zenith.PVPBuff
+    7010   Zenith.LiveOpsManagerComponent
+    7013   Zenith.InstancedAreaTriggerPrefabInfoComponent
+    2048   Zenith.InstancedAreaTriggerComponent
+    7014   Zenith.BlackboardSyncedVariablesComponent
+    6100   Zenith.SessionModifierComponent
+set ZSync = 60002  // 1 components
+    4004   Zenith.ZSyncComponent
+set Position = 60003  // 1 components
+    54     Improbable.Position
+set MapMarkerSet = 60004  // 3 components
+    2034   Zenith.PublicEventComponent
+    2044   Zenith.BuildingChunkComponent
+    5014   Zenith.Economy.AuctionedObject
+set PlayerClientSet = 70001  // 4 components
+    13001  Improbable.Gdk.PlayerLifecycle.PlayerHeartbeatClient
+    1003   Zenith.GarbageCollectionComponent
+    4009   Zenith.PlayerActivity
+    7012   Zenith.PlayerNotificationComponent
+set PlayerServerSet = 70002  // 10 components
+    3016   Zenith.InitialTransformOwnership
+    58     Improbable.Interest
+    13002  Improbable.Gdk.PlayerLifecycle.PlayerHeartbeatServer
+    13003  Improbable.Gdk.PlayerLifecycle.OwningWorker
+    2017   Zenith.TeleportComponent
+    1000   Zenith.PlayerAuthComponent
+    1011   Zenith.PlayerCharacterComponent
+    5011   Zenith.ServerTimeComponent
+    4007   Zenith.PlayerWorldComponent
+    7011   Zenith.PlayerMetricsComponent
+set PlayerAvatarClientSet = 70003  // 4 components
+    2023   Zenith.ZenithClientMovement
+    2025   Zenith.ZenithClientRotation
+    2026   Zenith.QBIComponent
+    2015   Zenith.AnimationDetector
+set PlayerAvatarServerSet = 70004  // 7 components
+    3016   Zenith.InitialTransformOwnership
+    58     Improbable.Interest
+    13003  Improbable.Gdk.PlayerLifecycle.OwningWorker
+    2017   Zenith.TeleportComponent
+    1001   Zenith.ActorInfoComponent
+    1004   Zenith.PlayerAvatarComponent
+    2024   Zenith.ZenithServerMovement
+set PlayerCharacterClientSet = 70005  // 7 components
+    3501   Zenith.PlayerStatusComponent
+    3705   Zenith.VoiceChatComponent
+    1040   Zenith.PlayerVoiceComponent
+    2023   Zenith.ZenithClientMovement
+    2026   Zenith.QBIComponent
+    2041   Zenith.ClientQuestJournalComponent
+    4040   Zenith.LatencyShield
+set PlayerCharacterServerSet = 70006  // 42 components
+    3016   Zenith.InitialTransformOwnership
+    58     Improbable.Interest
+    1008   Zenith.CharacterCredentialsComponent
+    1001   Zenith.ActorInfoComponent
+    3028   Zenith.IndicatorComponent
+    3503   Zenith.PartyComponent
+    3509   Zenith.XPModifierComponent
+    3510   Zenith.SocialInfo
+    3511   Zenith.InviteRequestHandler
+    3012   Zenith.Friend
+    3519   Zenith.SkillbookContainer
+    1151   Zenith.PlayerWorldPersistenceComponent
+    7003   Zenith.PlayerAccountPersistenceComponent
+    3670   Zenith.SpawnedNagivationTarget
+    13003  Improbable.Gdk.PlayerLifecycle.OwningWorker
+    4021   Zenith.PublicActorStatsComponent
+    1007   Zenith.ActorStatsComponent
+    1009   Zenith.ActorStatusEffectsComponent
+    1010   Zenith.CombatComponent
+    1013   Zenith.VFXComponent
+    1014   Zenith.SFXComponent
+    1015   Zenith.InventoryComponent
+    1016   Zenith.EquipmentComponent
+    2012   Zenith.ItemCreatorComponent
+    2013   Zenith.PlayerLifecycleComponent
+    1011   Zenith.PlayerCharacterComponent
+    3000   Zenith.PlayerAggroMap
+    2027   Zenith.NetworkedObjectInteractionComponent
+    2029   Zenith.RangedCombatComponent
+    2031   Zenith.ServerQuestJournalComponent
+    2033   Zenith.PlayerReputationComponent
+    5003   Zenith.CharacterAppearanceComponent
+    2035   Zenith.GodstoneComponent
+    5000   Zenith.GuildInterfaceComponent
+    2037   Zenith.CookingComponent
+    2040   Zenith.ConsumableComponent
+    5001   Zenith.Economy.Wallet
+    5012   Zenith.FeatureFlagComponent
+    7001   Zenith.PlayerBattlePassHandler
+    5033   Zenith.SummoningComponent
+    8002   Zenith.BoardGameTableSpawnerComponent
+    1101   Zenith.CharacterTradingComponent
+set PlayerHeadClientSet = 70007  // 1 components
+    5004   Zenith.Minimap
+set PlayerHeadServerSet = 70008  // 4 components
+    3016   Zenith.InitialTransformOwnership
+    58     Improbable.Interest
+    13003  Improbable.Gdk.PlayerLifecycle.OwningWorker
+    1005   Zenith.TrackedBodyPartComponent
+set PlayerHandClientSet = 70009  // 1 components
+    1006   Zenith.TrackedHandComponent
+set PlayerHandServerSet = 70010  // 3 components
+    3016   Zenith.InitialTransformOwnership
+    13003  Improbable.Gdk.PlayerLifecycle.OwningWorker
+    1005   Zenith.TrackedBodyPartComponent
+set ProjectileEntropySkewerClientSet = 70011  // 1 components
+    2030   Zenith.ProjectileComponent
+set ProjectileEntropySkewerServerSet = 70012  // 3 components
+    3670   Zenith.SpawnedNagivationTarget
+    13003  Improbable.Gdk.PlayerLifecycle.OwningWorker
+    3016   Zenith.InitialTransformOwnership
+set NoScriptSet = 70013  // 6 components
+    4023   Zenith.NOSActivatedComponent
+    4026   Zenith.NOSEventComponent
+    4025   Zenith.NOSIntComponent
+    4024   Zenith.NOSFloatComponent
+    4042   Zenith.NOSStringComponent
+    7014   Zenith.BlackboardSyncedVariablesComponent
+set PbcSet = 70014  // 1 components
+    7005   Zenith.PlannedBuildingStationComponent
+set InfiniteInterestSet = 70016  // 3 components
+    4046   Zenith.InfiniteInterestComponent
+    7013   Zenith.InstancedAreaTriggerPrefabInfoComponent
+    2048   Zenith.InstancedAreaTriggerComponent
+set InstanceWideInterestSet = 70017  // 7 components
+    5013   Zenith.InstanceStatsComponent
+    4023   Zenith.NOSActivatedComponent
+    4026   Zenith.NOSEventComponent
+    4025   Zenith.NOSIntComponent
+    4024   Zenith.NOSFloatComponent
+    4042   Zenith.NOSStringComponent
+    7014   Zenith.BlackboardSyncedVariablesComponent
+set SystemSet = 40000  // 11 components
+    2018   Zenith.LoginSystemComponent
+    4008   Zenith.MatchmakingComponent
+    2009   Zenith.EditorCommandComponent
+    5020   Zenith.DayNightWeatherComponent
+    2010   Zenith.CharacterSpawnerComponent
+    1017   Zenith.ItemCatalogComponent
+    4000   Zenith.EnhancementSystemComponent
+    1601   Zenith.Leaderboard
+    3506   Zenith.PartyTag
+    4036   Zenith.EntitySpawnerComponent
+    7010   Zenith.LiveOpsManagerComponent
+set WorkerSet = 40001  // 1 components
+    60     Improbable.Restricted.Worker
+set AuthorityDelegationSet = 70000  // 1 components
+    65     Improbable.AuthorityDelegation

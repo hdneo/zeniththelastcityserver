@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Zenith.Protocol</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Tables extracted from the client (see docs/data). -->
+    <EmbeddedResource Include="..\..\docs\data\component_ids.tsv" LogicalName="component_ids.tsv" />
+    <EmbeddedResource Include="..\..\docs\data\component_sets.txt" LogicalName="component_sets.txt" />
+  </ItemGroup>
+
+</Project>

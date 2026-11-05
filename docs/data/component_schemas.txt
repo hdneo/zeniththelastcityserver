@@ -1,0 +1,1458 @@
+// Auto-extracted from GameAssembly.dll (Serialization::SerializeComponent). Raw call order;
+// indented lines are fields of nested objects / map entries. "?" = field id not resolvable statically.
+// Wire types: see docs/02_ZenFabric_Protokoll.md (SchemaObject).
+
+component Improbable.Metadata = 53 {
+  1    String
+  // C# Snapshot: EntityType:string
+}
+
+component Improbable.Position = 54 {
+  // C# Snapshot: Coords:Coordinates
+}
+
+component Improbable.Persistence = 55 {
+  // C# Snapshot: 
+}
+
+component Improbable.Interest = 58 {
+  ?    EmptyList
+      1    Int32
+  1    ObjectList
+  // C# Snapshot: ComponentSetInterest:Dictionary<uint,ComponentSetInterest>
+}
+
+component Improbable.Restricted.SpatialSystem = 59 {
+  // C# Snapshot: 
+}
+
+component Improbable.Restricted.Worker = 60 {
+  1    String
+  2    String
+  // C# Snapshot: WorkerId:string, WorkerType:string, Connection:Connection
+}
+
+component Improbable.Restricted.PlayerClient = 61 {
+  // C# Snapshot: PlayerIdentity:PlayerIdentity
+}
+
+component Improbable.AuthorityDelegation = 65 {
+  ?    EmptyList
+      1    Int32
+      2    Int64
+  1    ObjectList
+  // C# Snapshot: Delegations:Dictionary<uint,long>
+}
+
+component Improbable.Restricted.Partition = 66 {
+  1    Int64
+  // C# Snapshot: WorkerConnectionId:long
+}
+
+component Zenith.PlayerAuthComponent = 1000 {
+  1    String
+  2    String
+  3    Int32
+  // C# Snapshot: PlayfabId:string, SessionTicket:string, BuildNumber:int
+}
+
+component Zenith.ActorInfoComponent = 1001 {
+  2    String
+  3    Int32
+  4    String
+  // C# Snapshot: EntityId:EntityId, DisplayName:string, ActorType:ActorType, Group:string
+}
+
+component Zenith.AnimationComponent = 1002 {
+  1    Float
+  2    Float
+  ?    EmptyList
+      1    Int32
+      2    Bool
+  5    ObjectList
+  6    Bool
+  // C# Snapshot: Speed:float, Turn:float, EquipState:Dictionary<EnemyEquipmentSlots,bool>, Climbable:bool
+}
+
+component Zenith.GarbageCollectionComponent = 1003 {
+  ?    EmptyList
+  // C# Snapshot: CreatedObjects:List<EntityId>
+}
+
+component Zenith.PlayerAvatarComponent = 1004 {
+  1    String
+  // C# Snapshot: PlayerEntityId:string, BodyParts:PlayerAvatarBodyParts
+}
+
+component Zenith.TrackedBodyPartComponent = 1005 {
+  1    String
+  2    EmptyOption
+  2    Int32
+  // C# Snapshot: PlayerAvatarEntityId:string, TrackedBodyPartType:Nullable<TrackedBodyPartType>
+}
+
+component Zenith.TrackedHandComponent = 1006 {
+  ?    EmptyList
+  1    FloatList
+  // C# Snapshot: Curls:List<float>
+}
+
+component Zenith.ActorStatsComponent = 1007 {
+  10   Int32
+  12   Int32
+  ?    EmptyList
+      1    Int32
+      2    Float
+  13   ObjectList
+  ?    EmptyList
+      1    Int32
+      2    Float
+  15   ObjectList
+  ?    EmptyList
+      1    Int32
+      2    Float
+  16   ObjectList
+  20   Int32
+  23   Int32
+  27   Int32
+  28   Int32
+  29   Int32
+  30   Int32
+  31   EmptyOption
+  31   Int32
+  32   EmptyOption
+  32   Int32
+  // C# Snapshot: CurrentRage:int, CurrentEssence:int, Stats:Dictionary<StatsType,float>, TotalStats:Dictionary<StatsType,float>, EquipmentStats:Dictionary<StatsType,float>, CharacterClass:CharacterType, CurrentShield:int, MoneyOnDeath:int, DpsXp:int, SupportXp:int, TankXp:int, ScaledLevelOffsetEntity:Nullable<int>, ScaledLevelOffsetSession:Nullable<int>
+}
+
+component Zenith.CharacterCredentialsComponent = 1008 {
+  1    String
+  2    String
+  3    String
+  4    Int32
+  6    Int32
+  7    String
+  8    Int64
+  9    String
+  10   String
+  11   String
+  ?    EmptyList
+  12   StringList
+  ?    EmptyList
+  13   StringList
+  14   Bool
+  15   String
+  16   Int64
+  ?    EmptyList
+  17   StringList
+  18   EmptyOption
+  18   String
+  19   Int32
+  20   EmptyOption
+  20   String
+  ?    EmptyList
+      1    String
+      2    Int32
+  21   ObjectList
+  22   String
+  23   String
+  24   String
+  ?    EmptyList
+  27   String
+  28   String
+  // C# Snapshot: CharacterId:string, CharacterName:string, PlayfabId:string, CharacterType:CharacterType, OwningWorkerEntityId:EntityId, VrPlatform:VRPlatform, VivoxAccountName:string, PsnAccountId:ulong, StoreAccountName:string, AnonymousCharacterId:string, AnonymousPlayerId:string, MutedPlayfabIds:List<string>, BlockedPlayfabIds:List<string>, IsInvisibleToPlayers:bool, AccountLogin:string, AccountCreatedTime:long, AccountRewards:List<string>, ReferralCode:Option<string>, ReferralPoints:int, Referrer:Option<string>, Experiments:Dictionary<string,int>, TempData:string, Title:string, TitleColor:string, Campaigns:List<CampaignData>, Homes:List<PlayerHome>, SessionId:string, AnonymousSessionId:string, ReimaginedSessionRankData:ReimaginedSessionRankRemoteData
+}
+
+component Zenith.ActorStatusEffectsComponent = 1009 {
+  ?    EmptyList
+      1    String
+  1    ObjectList
+  // C# Snapshot: ActiveStatusEffects:DiffDictionary<string,ActiveStatusEffectData>
+}
+
+component Zenith.CombatComponent = 1010 {
+  1    Bool
+  2    EmptyOption
+  2    String
+  3    EmptyOption
+  ?    EmptyList
+      1    Int32
+  4    ObjectList
+  5    Bool
+  6    EmptyOption
+  6    Float
+  7    EmptyOption
+  7    Double
+  8    EmptyOption
+  9    Float
+  10   Bool
+  11   String
+  12   EmptyOption
+  13   EmptyOption
+  13   Int32
+  14   Int32
+  15   EmptyOption
+  15   Float
+  16   Bool
+  17   Bool
+  // C# Snapshot: IsVulnerable:bool, EnemyScalingConfig:Option<string>, TargetedEntity:Nullable<EntityId>, Weakpoints:Dictionary<int,CombatWeakpointData>, Aggroed:bool, VulnerabilityDuration:Nullable<float>, VulnerabilityStartTime:Nullable<double>, HighestAggroEntity:Nullable<EntityId>, ScalingAttackSpeedMultiplier:float, Pvp:bool, PvpTeam:string, WeakpointCode:Nullable<WeakpointAnimationData>, CurrentAmmoCount:Nullable<int>, RandomSeedValue:uint, OverrideAggroRange:Nullable<float>, IsLeftHandEnchanted:bool, IsRightHandEnchanted:bool
+}
+
+component Zenith.PlayerCharacterComponent = 1011 {
+  1    String
+  2    String
+  3    String
+  4    Int32
+  ?    EmptyList
+      1    String
+      2    Int32
+  5    ObjectList
+  // C# Snapshot: PlayerCharacterEntityId:string, PlayerAvatarEntityId:string, PlayerEntityId:string, PlayerRuntimePlatform:ZenithRuntimePlatform, Experiments:Dictionary<string,int>, CurrentActivity:CurrentPlayerActivity
+}
+
+component Zenith.VFXComponent = 1013 {
+  1    EmptyOption
+  // C# Snapshot: SpawnEffectOverride:Nullable<EffectOverride>
+}
+
+component Zenith.SFXComponent = 1014 {
+  // C# Snapshot: 
+}
+
+component Zenith.InventoryComponent = 1015 {
+  ?    EmptyList
+      1    Int32
+  1    ObjectList
+  ?    EmptyList
+      1    String
+      2    Int64
+  2    ObjectList
+  ?    EmptyList
+      1    String
+  3    ObjectList
+  ?    EmptyList
+      1    Int32
+  4    ObjectList
+  ?    EmptyList
+      1    Int32
+  5    ObjectList
+  ?    EmptyList
+      1    Int32
+  6    ObjectList
+  ?    EmptyList
+      1    Int32
+  7    ObjectList
+  ?    EmptyList
+      1    Int32
+  8    ObjectList
+  ?    EmptyList
+      1    Int32
+  9    ObjectList
+  ?    EmptyList
+      1    Int32
+  10   ObjectList
+  ?    EmptyList
+      1    String
+  11   ObjectList
+  // C# Snapshot: Bags:DiffDictionary<int,Bag>, Currency:DiffDictionary<string,long>, RecoverableResources:Dictionary<string,RecoverableResource>, ItemsInventory:DiffDictionary<int,Item>, ItemsEquipped:DiffDictionary<int,Item>, ItemsGodstones:DiffDictionary<int,Item>, ItemsQuest:DiffDictionary<int,Item>, ItemsOverflow:DiffDictionary<int,Item>, ItemsCosmetic:DiffDictionary<int,Item>, ItemsBuilding:DiffDictionary<int,Item>, PowerItems:DiffDictionary<string,Item>
+}
+
+component Zenith.EquipmentComponent = 1016 {
+  ?    EmptyList
+      1    Int32
+  1    ObjectList
+  2    String
+  // C# Snapshot: Equipment:Dictionary<EquipmentSlot,Item>, Name:string
+}
+
+component Zenith.ItemCatalogComponent = 1017 {
+  ?    EmptyList
+      1    String
+  1    ObjectList
+  // C# Snapshot: CatalogItems:DiffDictionary<string,ItemDefinition>
+}
+
+component Zenith.SpawnedComponent = 1018 {
+  1    Float
+  3    String
+  4    String
+  5    String
+  6    Bool
+  7    String
+  8    Float
+  9    String
+  10   String
+  // C# Snapshot: Radius:float, Position:IntAbsolute, CharacterTerritoryRelationshipId:string, PatrolRouteId:string, SpawnerGuid:string, UseSpawnGroup:bool, SpawnGroupName:string, SpawnGroupRadius:float, OverrideMindConfigName:string, OverrideReimaginedAiConfigName:string
+}
+
+component Zenith.Spawner = 1019 {
+  ?    EmptyList
+  2    Float
+  3    Int32
+  4    Float
+  5    String
+  6    Bool
+  8    Bool
+  9    Bool
+  10   Bool
+  11   Float
+  12   Float
+  13   Int32
+  14   Int32
+  ?    EmptyList
+  16   Uint32List
+  17   Bool
+  18   Int32
+  19   String
+  ?    EmptyList
+      1    String
+      2    String
+  20   ObjectList
+  21   Int32
+  22   Bool
+  23   EmptyOption
+  24   String
+  25   Float
+  26   Bool
+  27   Int32
+  28   Float
+  29   Int32
+  30   Float
+  31   EmptyOption
+  32   EmptyOption
+  33   Bool
+  ?    EmptyList
+      1    Int32
+  34   ObjectList
+  35   Float
+  36   Bool
+  37   Float
+  38   Int32
+  39   String
+  40   Bool
+  41   EmptyOption
+  41   String
+  42   String
+  43   String
+  44   String
+  45   Int32
+  ?    EmptyList
+  47   Double
+  48   Double
+  49   Float
+  50   Bool
+  51   Float
+  52   Float
+  53   String
+  54   Bool
+  55   Bool
+  56   String
+  57   Float
+  58   EmptyOption
+  58   Float
+  59   EmptyOption
+  59   Float
+  60   Bool
+  ?    EmptyList
+  63   Int32
+  64   String
+  65   String
+  66   String
+  // C# Snapshot: SpawnedObjects:List<EntityId>, Radius:float, MaxSpawnedObjects:int, SpawnCooldown:float, SpawnedEntityType:string, SpawnOnce:bool, DestroyOnEmpty:bool, SerializeOnDestroy:bool, UseEcs:bool, SpawnTimer:float, DespawnTimer:float, SpawnMode:SpawnMode, SpawnType:SpawnLocationType, Positions:List<IntAbsolute>, Rotations:List<uint>, SpawnedBefore:bool, EntityLevel:int, BundleId:string, SpawnedEntityMetadata:Dictionary<string,string>, ItemLevelDropOffset:int, IsNewItem:bool, ItemData:Nullable<Item>, OverrideName:string, YRotation:float, DespawnEntitiesInstantlyWhenDestroyed:bool, UnscaledMoney:int, SpawnSensitivity:float, MinSpawnCountOnStart:int, AutoDestroySpawnerInSeconds:float, PublicEventConfig:Nullable<PublicEventConfiguration>, NavigationTarget:Nullable<IntAbsolute>, UseSurfaceNormalRotation:bool, OccupiedIndexes:Dictionary<int,EntityId>, MinRadius:float, SpawnOnceDontDestroy:bool, StaggerTimer:float, TotalSpawnedCount:int, GodstoneLootTable:string, ManualSpawn:bool, EnemyScalingConfigName:Option<string>, CharacterTerritoryRelationshipId:string, PatrolRouteId:string, SpawnerGuid:string, ItemIlevelDropOffset:int, SpawnableOnDefeatEntities:List<SpawnableOnDefeatEntity>, CreatedTime:double, LastKillTime:double, Cooldown:float, UseTimeOfDay:bool, TimeOfDayStart:float, TimeOfDayEnd:float, RarityTable:string, AllowAggroWithNavTarget:bool, UseSpawnGroup:bool, SpawnGroupName:string, SpawnGroupRadius:float, OverrideAggroRange:Nullable<float>, OverrideEntitySize:Nullable<float>, UsePrecisePositioning:bool, LevelScaling:LevelScalingParameters, InflatedEnemySpawnList:List<InflatedEnemySpawnListEntry>, InflatedEnemySpawnListIndex:int, EnemySpawnListGroupId:string, OverrideMindConfigName:string, OverrideReimaginedAiConfigName:string
+}
+
+component Zenith.PlayerVoiceComponent = 1040 {
+  1    Float
+  2    Bool
+  // C# Snapshot: Magnitude:float, IsUsingToxmod:bool
+}
+
+component Zenith.TravellingObjectComponent = 1050 {
+  ?    EmptyList
+  2    Bool
+  3    Float
+  // C# Snapshot: Path:List<ZTransform>, IsMoving:bool, Speed:float
+}
+
+component Zenith.ItemComponent = 1087 {
+  ?    EmptyList
+  3    StringList
+  10   Bool
+  11   Bool
+  12   Bool
+  13   Bool
+  // C# Snapshot: ItemDefinition:ItemDefinition, ItemInstance:Item, AllowedOwnerCharacterIds:List<string>, CannotBeClaimed:bool, SpawnedByPlayer:bool, BeingClaimed:bool, IgnoreNoLootZones:bool
+}
+
+component Zenith.CharacterTradingComponent = 1101 {
+  1    EmptyOption
+  // C# Snapshot: CurrentTransactionData:Nullable<TransactionData>
+}
+
+component Zenith.PlayerWorldPersistenceComponent = 1151 {
+  ?    EmptyList
+  1    StringList
+  ?    EmptyList
+  2    StringList
+  ?    EmptyList
+  3    StringList
+  ?    EmptyList
+      1    String
+      2    Int32
+  5    ObjectList
+  ?    EmptyList
+      1    String
+  6    ObjectList
+  ?    EmptyList
+  7    StringList
+  ?    EmptyList
+      1    String
+  8    ObjectList
+  ?    EmptyList
+      1    String
+      2    Bool
+  9    ObjectList
+  ?    EmptyList
+      1    String
+      2    Int32
+  10   ObjectList
+  ?    EmptyList
+      1    Int32
+      2    Int32
+  11   ObjectList
+  ?    EmptyList
+      1    Int32
+  12   ObjectList
+  ?    EmptyList
+      1    Int32
+      2    Bool
+  13   ObjectList
+  ?    EmptyList
+      1    String
+      2    Int32
+  14   ObjectList
+  15   String
+  ?    EmptyList
+      1    String
+  16   ObjectList
+  ?    EmptyList
+      1    String
+  17   ObjectList
+  ?    EmptyList
+  19   ObjectList
+  // C# Snapshot: PlayedVoiceLines:List<string>, CollectedWorldItems:List<string>, CompletedTutorials:List<string>, UnlockedInstances:List<UnlockedInstance>, InstanceCompletions:Dictionary<string,int>, ClaimedRewards:Dictionary<string,ClaimedRewardInfoSchema>, VisitedZones:List<string>, BattlePassData:Dictionary<string,BattlePassPersistenceData>, GlobalGroupStates:Dictionary<string,bool>, PersistedExperiments:Dictionary<string,int>, MenuGroupIndexStates:Dictionary<MenuGroupIndex,MenuActiveState>, PetPersistenceData:Dictionary<CraftingSkill,PetPersistenceData>, PetPerks:Dictionary<int,bool>, MiscPetData:Dictionary<string,int>, TitleId:string, TimedProcessTickets:Dictionary<string,TimedProcessData>, RandomQuestGiverStatesByGiverId:Dictionary<string,QuestGiverRandomizationData>, PvpStats:PVPPlayerGlobalStats, DonatedLocalPbcResources:Dictionary<NetworkedGuid,PersistedPbcResources>, ReimaginedSeasonRankData:ReimaginedSeasonRankPersistenceData
+}
+
+component Zenith.Leaderboard = 1601 {
+  // C# Snapshot: 
+}
+
+component Zenith.EditorCommandComponent = 2009 {
+  // C# Snapshot: 
+}
+
+component Zenith.CharacterSpawnerComponent = 2010 {
+  // C# Snapshot: 
+}
+
+component Zenith.LootableComponent = 2011 {
+  1    String
+  2    Bool
+  3    Int32
+  ?    EmptyList
+  4    StringList
+  5    Int32
+  ?    EmptyList
+  // C# Snapshot: BundleId:string, Redeemed:bool, ItemDropLevel:int, LootTableIds:List<string>, ItemDropItemLevel:int, SpawnableOnDefeatEntities:List<SpawnableOnDefeatEntity>
+}
+
+component Zenith.ItemCreatorComponent = 2012 {
+  // C# Snapshot: 
+}
+
+component Zenith.PlayerLifecycleComponent = 2013 {
+  1    Int32
+  2    EmptyOption
+  ?    EmptyList
+  // C# Snapshot: LifecycleState:CharacterLifecycleState, TetherLocation:Nullable<ZVector3>, Recoverers:List<RecovererInfo>
+}
+
+component Zenith.SpawnableLootComponent = 2014 {
+  ?    EmptyList
+  2    StringList
+  3    Bool
+  4    EmptyOption
+  4    String
+  ?    EmptyList
+  // C# Snapshot: Loot:List<SpatialLootResult>, AllowedOwnerCharacterIds:List<string>, VisibleToOtherPlayers:bool, SpawnedBy:Option<string>, SafeSpawnPoints:List<ZVector3>
+}
+
+component Zenith.AnimationDetector = 2015 {
+  1    Bool
+  2    Bool
+  3    Bool
+  4    Bool
+  5    Bool
+  6    Bool
+  7    Bool
+  8    Bool
+  9    Bool
+  ?    EmptyList
+  11   Uint32List
+  12   Bool
+  13   Float
+  14   Bool
+  15   Bool
+  16   Bool
+  17   Bool
+  18   Float
+  19   Bool
+  20   Bool
+  21   Float
+  // C# Snapshot: IsMoving:bool, IsOobing:bool, IsGliding:bool, IsClimbing:bool, IsOnGround:bool, IsZiplining:bool, IsJumping:bool, IsBlinkingLeft:bool, IsBlinkingRight:bool, BonePositions:List<PlayerAvatarBonePosition>, BoneRotations:List<uint>, IsSprinting:bool, CrouchBlendAmount:float, IsSliding:bool, IsGrinding:bool, IsWallRunningLeft:bool, IsWallRunningRight:bool, SlidingInclination:float, IsGrappling:bool, IsLeaping:bool, GrindingInclination:float
+}
+
+component Zenith.OwnershipComponent = 2016 {
+  // C# Snapshot: 
+}
+
+component Zenith.TeleportComponent = 2017 {
+  // C# Snapshot: Position:IntAbsolute
+}
+
+component Zenith.LoginSystemComponent = 2018 {
+  // C# Snapshot: 
+}
+
+component Improbable.Gdk.Movement.ClientMovement = 2020 {
+  // C# Snapshot: Latest:ClientRequest
+}
+
+component Improbable.Gdk.Movement.ServerMovement = 2021 {
+  // C# Snapshot: Latest:ServerResponse
+}
+
+component Improbable.Gdk.Movement.ClientRotation = 2022 {
+  // C# Snapshot: Latest:RotationUpdate
+}
+
+component Zenith.ZenithClientMovement = 2023 {
+  // C# Snapshot: Latest:ZenithClientRequest
+}
+
+component Zenith.ZenithServerMovement = 2024 {
+  // C# Snapshot: Latest:ZenithServerResponse
+}
+
+component Zenith.ZenithClientRotation = 2025 {
+  // C# Snapshot: Latest:ZenithRotationUpdate
+}
+
+component Zenith.QBIComponent = 2026 {
+  // C# Snapshot: 
+}
+
+component Zenith.NetworkedObjectInteractionComponent = 2027 {
+  ?    EmptyList
+      1    String
+  1    ObjectList
+  // C# Snapshot: Interactions:Dictionary<string,NetworkedObjectInteraction>, LeftHandEntityId:EntityId, RightHandEntityId:EntityId
+}
+
+component Zenith.TimeScaleComponent = 2028 {
+  1    Float
+  // C# Snapshot: TimeScale:float
+}
+
+component Zenith.RangedCombatComponent = 2029 {
+  // C# Snapshot: 
+}
+
+component Zenith.ProjectileComponent = 2030 {
+  2    Float
+  3    Int32
+  // C# Snapshot: ProjectileParameters:ProjectileParameters, ChargeAmount:float, RemainingHits:int
+}
+
+component Zenith.ServerQuestJournalComponent = 2031 {
+  1    String
+  2    String
+  // C# Snapshot: Quests:string, JournalId:string
+}
+
+component Zenith.PlayerReputationComponent = 2033 {
+  ?    EmptyList
+  // C# Snapshot: ZoneReputations:List<ZoneReputationInfo>
+}
+
+component Zenith.PublicEventComponent = 2034 {
+  1    String
+  2    Float
+  3    Float
+  4    Int32
+  5    Double
+  6    Double
+  ?    EmptyList
+  9    String
+  10   String
+  11   EmptyOption
+  12   EmptyOption
+  12   String
+  // C# Snapshot: Description:string, Radius:float, Duration:float, EventStatus:PublicEventStatus, StartTime:double, EndTime:double, Counters:List<PublicEventCounter>, Quest:string, ConditionDescription:string, Configuration:Nullable<PublicEventConfiguration>, EnableGuidWhileActive:Option<string>
+}
+
+component Zenith.GodstoneComponent = 2035 {
+  ?    EmptyList
+      1    Int32
+  3    ObjectList
+  ?    EmptyList
+  4    StringList
+  ?    EmptyList
+      1    Int32
+  5    ObjectList
+  // C# Snapshot: Etherdisks:List<EtherdiskData>, ActiveEtherdisk:EtherdiskData, Cooldowns:Dictionary<SkillStoneActivation,GodstoneCooldownData>, EquippedGodstones:List<string>, SkillTreeProgress:Dictionary<Role,SkillTreeProgress>
+}
+
+component Zenith.CookingStationComponent = 2036 {
+  1    String
+  2    Int32
+  ?    EmptyList
+      1    Int32
+  3    ObjectList
+  4    EmptyOption
+  4    Int32
+  5    String
+  ?    EmptyList
+  // C# Snapshot: OwnerAccountId:string, NumCookingDevices:int, CookingDeviceContents:Dictionary<int,EntityId>, CurrentRecipe:Nullable<CraftingSkill>, ActiveFuelItemId:string, GarbageItems:List<EntityId>
+}
+
+component Zenith.CookingComponent = 2037 {
+  1    EmptyOption
+  // C# Snapshot: ActiveCookingStation:Nullable<EntityId>
+}
+
+component Zenith.IngredientDataComponent = 2038 {
+  2    String
+  // C# Snapshot: IngredientData:IngredientData, RecipeId:string, StationId:EntityId
+}
+
+component Zenith.IngredientStatusComponent = 2039 {
+  1    Int32
+  2    Int32
+  3    Float
+  // C# Snapshot: PrepStatus:IngredientPrepStatus, CookStatus:IngredientCookStatus, CookQuality:float
+}
+
+component Zenith.ConsumableComponent = 2040 {
+  // C# Snapshot: 
+}
+
+component Zenith.ClientQuestJournalComponent = 2041 {
+  // C# Snapshot: 
+}
+
+component Zenith.FeastComponent = 2042 {
+  1    Int32
+  2    String
+  ?    EmptyList
+  4    Int32
+  // C# Snapshot: Status:FeastStatus, FeastId:string, Ingredients:List<FeastIngredientData>, ItemsLeft:int
+}
+
+component Zenith.AbstractCraftingStationComponent = 2043 {
+  ?    EmptyList
+  2    EmptyOption
+  ?    EmptyList
+      1    String
+  3    ObjectList
+  5    String
+  6    String
+  // C# Snapshot: Recipes:List<AbstractCraftingRecipeInfo>, CurrentRecipe:Nullable<AbstractCraftingRecipeInfo>, AddedIngredients:Dictionary<string,AddedIngredientData>, OperatorEntityId:EntityId, OperatorWorkerId:string, StationId:string
+}
+
+component Zenith.BuildingChunkComponent = 2044 {
+  1    String
+  2    String
+  4    Int32
+  5    String
+  6    String
+  7    String
+  ?    EmptyList
+      1    String
+  8    ObjectList
+  // C# Snapshot: Id:string, Scope:string, Bounds:BoundsSpec, Version:int, OwnerAccountId:string, OwnerDisplayName:string, Data:string, ChildEntities:DiffDictionary<string,EntityId>
+}
+
+component Zenith.FishingRodComponent = 2045 {
+  3    Float
+  4    Bool
+  5    Bool
+  6    Float
+  // C# Snapshot: LineBasePosition:ZVector3, FloatPosition:ZVector3, CurrentLineLength:float, IsExtended:bool, FloatOnWater:bool, LineTension:float
+}
+
+component Zenith.FishingStateComponent = 2046 {
+  1    Bool
+  2    EmptyOption
+  3    EmptyOption
+  // C# Snapshot: IsFishing:bool, CurrentCatcheableId:Nullable<EntityId>, PotentialCatcheableId:Nullable<EntityId>
+}
+
+component Zenith.FishingCatchableComponent = 2047 {
+  1    Int32
+  2    EmptyOption
+  3    Float
+  4    Float
+  5    Float
+  6    Float
+  7    Float
+  8    Float
+  9    Float
+  10   Float
+  11   Float
+  12   Float
+  13   Float
+  14   Float
+  15   Float
+  16   Float
+  17   Float
+  18   Float
+  // C# Snapshot: State:CatchableState, AttachedRodId:Nullable<EntityId>, MaxEndurance:float, Weight:float, WeightAggroForceFactor:float, WeightBaseSpeedFactor:float, EnduranceDepletionSpeed:float, EnduranceMinDistanceFactor:float, MinDistanceKeepFactor:float, LineTensionFactor:float, Aggressiveness:float, AggressivenessDurationMin:float, AggressivenessDurationMax:float, AggressivenessTimerLeft:float, CurrentEndurance:float, DebugMinDistanceSwim:float, DebugAggroSwim:float, DebugTensionSwim:float
+}
+
+component Zenith.InstancedAreaTriggerComponent = 2048 {
+  1    String
+  3    Bool
+  4    Int32
+  5    Bool
+  6    Bool
+  7    Int32
+  // C# Snapshot: Id:string, Size:ZVector3, IsRuntimeOnly:bool, MaxPlayers:int, RegisterReimaginedSession:bool, OnlyAllowProgrammaticJoinLeave:bool, Priority:int
+}
+
+component Zenith.InstancedAreaComponent = 2049 {
+  1    String
+  2    String
+  5    Int64
+  6    String
+  7    Int32
+  // C# Snapshot: Id:string, ParentId:string, Size:ZVector3, WorldOffset:ZVector3, LastPresenceTime:long, DisplayName:string, State:InstancedAreaState
+}
+
+component Zenith.BuildingChunkChildComponent = 2050 {
+  1    String
+  3    String
+  // C# Snapshot: Id:string, ParentChunkEntityId:EntityId, ChunkOwnerAccountId:string, Style:BuildingComponentStyle
+}
+
+component Zenith.PlayerAggroMap = 3000 {
+  ?    EmptyList
+      2    Int32
+  1    ObjectList
+  // C# Snapshot: AggroMap:Dictionary<EntityId,int>
+}
+
+component Zenith.Friend = 3012 {
+  // C# Snapshot: 
+}
+
+component Zenith.InitialTransformOwnership = 3016 {
+  1    Bool
+  2    Bool
+  // C# Snapshot: PositionClientAuth:bool, ZsyncClientAuth:bool
+}
+
+component Zenith.IndicatorComponent = 3028 {
+  // C# Snapshot: 
+}
+
+component Zenith.ServerTeleporterComponent = 3100 {
+  2    String
+  3    EmptyOption
+  3    Int32
+  4    Bool
+  5    Bool
+  // C# Snapshot: TeleportPosition:IntAbsolute, DestinationLabel:string, Rotation:Nullable<uint>, IsInstant:bool, IsInvisibleBox:bool, InvisibleBoxSize:ZVector3
+}
+
+component Zenith.PlayerListComponent = 3500 {
+  ?    EmptyList
+  // C# Snapshot: PlayerMetadatas:List<PlayerMetadata>
+}
+
+component Zenith.PlayerStatusComponent = 3501 {
+  3    Bool
+  4    Bool
+  // C# Snapshot: PlayerId:EntityId, Presence:PlayerPresence, SocialMode:bool, IsDrawing:bool
+}
+
+component Zenith.PartyMetadataComponent = 3502 {
+  // C# Snapshot: PartyMetadata:PartyMetadata
+}
+
+component Zenith.PartyComponent = 3503 {
+  ?    EmptyList
+  4    Bool
+  5    Bool
+  7    Bool
+  8    Bool
+  // C# Snapshot: PartyInvites:List<PartyInvite>, PartyRequests:List<PartyRequest>, CurrentPartyData:List<ClientPartyData>, IsLeader:bool, IsInParty:bool, PartyId:EntityId, IsOnline:bool, Unmoderated:bool
+}
+
+component Zenith.PartyInvitesComponent = 3504 {
+  ?    EmptyList
+  // C# Snapshot: PartyRequests:List<PartyInvite>
+}
+
+component Zenith.PartyTag = 3506 {
+  // C# Snapshot: 
+}
+
+component Zenith.XPModifierComponent = 3509 {
+  1    Float
+  // C# Snapshot: Modifier:float
+}
+
+component Zenith.SocialInfo = 3510 {
+  // C# Snapshot: 
+}
+
+component Zenith.InviteRequestHandler = 3511 {
+  ?    EmptyList
+  // C# Snapshot: Invites:List<Invite>
+}
+
+component Zenith.Detection = 3515 {
+  ?    EmptyList
+  2    Int32
+  3    String
+  4    Float
+  5    Float
+  6    Double
+  // C# Snapshot: ObjectsInSpace:List<EntityId>, ActorType:ActorType, ActorTag:string, DetectRadius:float, InTimer:float, LastInTime:double
+}
+
+component Zenith.SpawnerDataComponent = 3517 {
+  ?    EmptyList
+  1    ObjectList
+  ?    EmptyList
+  // C# Snapshot: EntityToSpawnPositions:Dictionary<EntityId,IntAbsolute>, SpawnInfo:List<SpawnInfo>
+}
+
+component Zenith.SpawnTag = 3518 {
+  2    String
+  4    Int32
+  // C# Snapshot: SpawnerId:EntityId, SpawnedEntityType:string, SpawnPosition:IntAbsolute, SpawnedPositionIndex:int
+}
+
+component Zenith.SkillbookContainer = 3519 {
+  ?    EmptyList
+      1    Int32
+  1    ObjectList
+  // C# Snapshot: Skillbooks:Dictionary<CraftingSkillType,Skillbook>
+}
+
+component Zenith.Gatherable = 3520 {
+  1    Int32
+  2    Int32
+  3    Int32
+  4    Int32
+  // C# Snapshot: GatheringStatus:GatheringStatus, GatheringSkill:CraftingSkill, XpCurveType:GatheringXPCurveType, ZoneLevel:int
+}
+
+component Zenith.LocalStateComponent = 3525 {
+  // C# Snapshot: 
+}
+
+component Zenith.SpawnedNagivationTarget = 3670 {
+  1    EmptyOption
+  2    Bool
+  // C# Snapshot: Destination:Nullable<IntAbsolute>, AllowAggroWithNavTarget:bool
+}
+
+component Zenith.VoiceChatComponent = 3705 {
+  1    Int32
+  2    Bool
+  3    Bool
+  4    String
+  5    Bool
+  // C# Snapshot: VoiceChannel:VoiceChannel, Muted:bool, Deafened:bool, VoiceChannelHash:string, IsUsingToxmod:bool
+}
+
+component Zenith.EnhancementSystemComponent = 4000 {
+  // C# Snapshot: 
+}
+
+component Zenith.GrabbableEntityComponent = 4001 {
+  ?    EmptyList
+  // C# Snapshot: GrabData:GrabbableEntityData, OwningPlayerIds:List<EntityId>
+}
+
+component Zenith.OwnableEntity = 4003 {
+  ?    EmptyList
+  // C# Snapshot: PotentialOwners:List<EntityId>
+}
+
+component Zenith.ZSyncComponent = 4004 {
+  2    Int32
+  4    EmptyOption
+  5    Double
+  7    EmptyOption
+  // C# Snapshot: Location:ZVector3, Rotation:uint, Scale:ZVector3, Parent:Nullable<ParentReference>, RemoteTimestamp:double, OwningWorkerEntityId:EntityId, CurrentLinearMotion:Nullable<LinearMotion>
+}
+
+component Zenith.VivoxAuthComponent = 4005 {
+  // C# Snapshot: 
+}
+
+component Zenith.PlayerWorldComponent = 4007 {
+  1    Int32
+  4    EmptyOption
+  5    Int64
+  6    String
+  // C# Snapshot: WorldType:ZenithWorldType, Instance:SpawnedInstanceData, WorldOffset:ZVector3, CurrentInstancedArea:Nullable<InstancedAreaInfo>, LastInstanceTriggerEntryTime:long, PreferredInstanceId:string
+}
+
+component Zenith.MatchmakingComponent = 4008 {
+  // C# Snapshot: 
+}
+
+component Zenith.PlayerActivity = 4009 {
+  1    Bool
+  // C# Snapshot: DeviceSleeping:bool
+}
+
+component Zenith.PlayTimelineEntity = 4015 {
+  1    Bool
+  // C# Snapshot: Play:bool
+}
+
+component Zenith.ConvertIDOToSpatialEntity = 4018 {
+  1    String
+  2    String
+  // C# Snapshot: MatchId:string, IdObject:string
+}
+
+component Zenith.PlayerTransformsComponent = 4019 {
+  // C# Snapshot: Head:PlayerTransformType, LeftHand:PlayerTransformType, RightHand:PlayerTransformType
+}
+
+component Zenith.InitialRotationComponent = 4020 {
+  1    Int32
+  // C# Snapshot: Rotation:uint
+}
+
+component Zenith.PublicActorStatsComponent = 4021 {
+  7    Int32
+  8    Int32
+  9    Int32
+  18   Int32
+  19   Int32
+  21   Float
+  22   Float
+  ?    EmptyList
+      1    String
+  25   ObjectList
+  26   Bool
+  28   Float
+  29   Int32
+  30   Int32
+  31   Float
+  32   Float
+  33   Int32
+  ?    EmptyList
+      1    Int32
+      2    Float
+  34   ObjectList
+  35   Bool
+  36   Int32
+  37   Float
+  38   Bool
+  39   Bool
+  40   Bool
+  41   Bool
+  42   Bool
+  // C# Snapshot: Level:int, Xp:int, CurrentHealth:int, CurrentVulnerability:int, CurrentRoleXp:int, CurrentStaggerDuration:float, CurrentStaggerScalar:float, CreatedStatusEffects:DiffDictionary<string,StatusEffectCreated>, NotANewSpawn:bool, MaxStaggerDuration:float, MaxHealth:int, MaxVulnerability:int, DamageStat:float, AttackStat:float, EffectiveLevel:int, PublicStats:Dictionary<StatsType,float>, IsMatchmaking:bool, Role:Role, CurrentStealth:float, IsSneaking:bool, IsCyberninjaSneaking:bool, IsCyberninjaAssassin:bool, IsInvulnerable:bool, IsStaggerImmune:bool, LevelScaling:LevelScalingParameters
+}
+
+component Zenith.PreWarmEntity = 4022 {
+  1    String
+  2    EmptyOption
+  3    String
+  4    Bool
+  5    Bool
+  // C# Snapshot: Id:string, InitialVelocity:Nullable<IntAbsolute>, UniqueId:string, ForcePrewarming:bool, DontDestroyOnDelete:bool
+}
+
+component Zenith.NOSActivatedComponent = 4023 {
+  1    Bool
+  // C# Snapshot: Activated:bool
+}
+
+component Zenith.NOSFloatComponent = 4024 {
+  1    Float
+  // C# Snapshot: Value:float
+}
+
+component Zenith.NOSIntComponent = 4025 {
+  1    Int32
+  // C# Snapshot: State:int
+}
+
+component Zenith.NOSEventComponent = 4026 {
+  // C# Snapshot: 
+}
+
+component Zenith.BehaviorChunkComponent = 4027 {
+  1    String
+  ?    EmptyList
+  // C# Snapshot: Script:string, References:List<BehaviorChunkReference>
+}
+
+component Zenith.EntityParentMarker = 4028 {
+  1    String
+  2    String
+  // C# Snapshot: Id:string, TargetId:string
+}
+
+component Zenith.Bug = 4029 {
+  1    Int32
+  ?    EmptyList
+      1    Int32
+      2    Int32
+  2    ObjectList
+  3    String
+  4    Float
+  5    Float
+  6    Float
+  7    EmptyOption
+  8    Float
+  9    Int32
+  10   Int32
+  11   Float
+  12   Int32
+  13   Bool
+  14   Float
+  15   Bool
+  16   Float
+  // C# Snapshot: BugState:BugState, SkillMapping:Dictionary<ItemRarity,CraftingSkill>, BoundCharacterId:string, CurrentStamina:float, EscapeTimer:float, EscapeRate:float, HeldBallEntityId:Nullable<EntityId>, BreakoutAttemptCooldown:float, Rarity:ItemRarity, BreakoutAttempts:int, CurrentBoundaryRadius:float, BreakoutCount:int, PlayerWithinBoundary:bool, PlayerWithinBoundaryTime:float, IsAgitated:bool, MaxStamina:float
+}
+
+component Zenith.CatcherComponent = 4030 {
+  1    EmptyOption
+  // C# Snapshot: HeldBug:Nullable<EntityId>
+}
+
+component Zenith.BowComponent = 4031 {
+  2    Float
+  3    Float
+  4    Int32
+  5    Bool
+  6    Float
+  // C# Snapshot: BowDrawAmount:float, BowKnockZ:float, AmmoCount:int, BladeMode:bool, AmmoRechargeCurrentTime:float
+}
+
+component Zenith.ArrowComponent = 4032 {
+  2    Bool
+  3    Int32
+  4    Int32
+  5    Bool
+  // C# Snapshot: Stick:ProjectileStickEntity, Shot:bool, Type:BowArrowType, PierceCount:int, Charged:bool
+}
+
+component Zenith.BeamComponent = 4033 {
+  1    Bool
+  2    Bool
+  // C# Snapshot: BlockingMode:bool, BeamsActive:bool
+}
+
+component Zenith.BoStaffComponent = 4034 {
+  1    Int32
+  // C# Snapshot: State:BoStaffState
+}
+
+component Zenith.HookshotComponent = 4035 {
+  2    Bool
+  // C# Snapshot: Target:ZVector3, IsValidHit:bool
+}
+
+component Zenith.EntitySpawnerComponent = 4036 {
+  // C# Snapshot: 
+}
+
+component Zenith.SwordComponent = 4037 {
+  1    Bool
+  // C# Snapshot: Blocking:bool
+}
+
+component Zenith.PVPArena = 4038 {
+  ?    EmptyList
+      1    String
+  2    ObjectList
+  3    Bool
+  4    Int32
+  5    Bool
+  6    Bool
+  7    Float
+  8    Int32
+  ?    EmptyList
+  // C# Snapshot: Teams:Dictionary<string,PVPTeamData>, IsActive:bool, TargetPoints:int, PlayerCreated:bool, IsStarting:bool, Size:float, Gamemode:PVPArenaGamemode, Owner:EntityId, AllPlayers:List<EntityId>
+}
+
+component Zenith.PVPBuff = 4039 {
+  1    Bool
+  // C# Snapshot: Consumed:bool
+}
+
+component Zenith.LatencyShield = 4040 {
+  1    Bool
+  2    Float
+  4    Int32
+  // C# Snapshot: Activated:bool, ChargeAmount:float, Pos:ZVector3, Rot:uint
+}
+
+component Zenith.CyberGadgetComponent = 4041 {
+  // C# Snapshot: Stick:ProjectileStickEntity
+}
+
+component Zenith.NOSStringComponent = 4042 {
+  1    String
+  // C# Snapshot: Value:string
+}
+
+component Zenith.SpatialRouteComponent = 4043 {
+  1    String
+  ?    EmptyList
+  3    Bool
+  // C# Snapshot: Id:string, Nodes:List<SpatialRouteNodeData>, ClosedLoop:bool
+}
+
+component Zenith.InfiniteInterestComponent = 4046 {
+  1    Int32
+  // C# Snapshot: State:int
+}
+
+component Zenith.GuildInterfaceComponent = 5000 {
+  1    String
+  2    String
+  3    String
+  4    Int32
+  5    String
+  6    String
+  7    String
+  // C# Snapshot: GuildEntityKeyId:string, GuildName:string, RoleId:string, Permissions:GuildPermissionFlags, CreatorName:string, CreatorPlatform:string, CreatorPlatformAccountName:string
+}
+
+component Zenith.Economy.Wallet = 5001 {
+  1    Int64
+  2    Int64
+  // C# Snapshot: Zen:long, Zennies:long
+}
+
+component Zenith.Economy.Vendor = 5002 {
+  1    String
+  2    String
+  ?    EmptyList
+  // C# Snapshot: Name:string, Description:string, StoreItems:List<VendorItem>
+}
+
+component Zenith.CharacterAppearanceComponent = 5003 {
+  ?    EmptyList
+      1    Int32
+      2    String
+  1    ObjectList
+  2    Int32
+  // C# Snapshot: Appearance:Dictionary<Appearance,string>, Gender:Gender
+}
+
+component Zenith.Minimap = 5004 {
+  // C# Snapshot: 
+}
+
+component Zenith.DynamicMinimapMarker = 5005 {
+  1    Int32
+  // C# Snapshot: MarkerType:MarkerType
+}
+
+component Zenith.MinimapMarkerSpawner = 5006 {
+  1    Int32
+  2    Int32
+  3    Bool
+  // C# Snapshot: MarkerType:MarkerType, UpdateType:MarkerUpdateType, HasCreated:bool
+}
+
+component Zenith.StaticMinimapMarker = 5007 {
+  1    Int32
+  3    String
+  4    EmptyOption
+  5    EmptyOption
+  6    EmptyOption
+  // C# Snapshot: MarkerType:MarkerType, Position:Coordinates, DisplayName:string, GatherNodeData:Nullable<GatherNodeCustomData>, PublicEventData:Nullable<PublicEventCustomData>, LinkedEntity:Nullable<EntityId>
+}
+
+component Zenith.CustomMarkerData = 5008 {
+  2    Bool
+  3    String
+  4    EmptyOption
+  5    EmptyOption
+  // C# Snapshot: LinkedEntity:EntityId, IsVisible:bool, DisplayName:string, GatherNodeData:Nullable<GatherNodeCustomData>, PublicEventData:Nullable<PublicEventCustomData>
+}
+
+component Zenith.MapMarkerAssociation = 5009 {
+  // C# Snapshot: SpawnedMarker:EntityId
+}
+
+component Zenith.ClientTimeComponent = 5010 {
+  // C# Snapshot: 
+}
+
+component Zenith.ServerTimeComponent = 5011 {
+  // C# Snapshot: 
+}
+
+component Zenith.FeatureFlagComponent = 5012 {
+  ?    EmptyList
+      1    Int32
+      2    Int32
+  1    ObjectList
+  2    Int32
+  // C# Snapshot: FeatureFlags:Dictionary<int,int>, UserAuthority:UserAuthority
+}
+
+component Zenith.InstanceStatsComponent = 5013 {
+  1    String
+  2    Int32
+  3    Int32
+  ?    EmptyList
+  4    StringList
+  5    Bool
+  6    String
+  7    Int32
+  // C# Snapshot: MatchId:string, ResurrectionLimit:int, ResurrectionsUsed:int, Participants:List<string>, BarrierUp:bool, InstanceName:string, InstanceRank:int
+}
+
+component Zenith.Economy.AuctionedObject = 5014 {
+  1    String
+  2    String
+  3    String
+  4    Bool
+  5    Int64
+  6    Int64
+  7    String
+  8    String
+  // C# Snapshot: ObjectId:string, ObjectType:string, Scope:string, AuctionActive:bool, EndTime:long, HighestBid:long, HighestBidderAccountId:string, HighestBidderCharacterName:string
+}
+
+component Zenith.DayNightWeatherComponent = 5020 {
+  1    Float
+  2    Float
+  // C# Snapshot: TimeOfDay:float, Rain:float
+}
+
+component Zenith.PetData = 5032 {
+  2    Int32
+  3    Int32
+  4    String
+  5    String
+  6    Int32
+  // C# Snapshot: Owner:EntityId, PetStatus:PetStatus, PetType:CraftingSkill, OwnerName:string, PetName:string, PetLevel:int
+}
+
+component Zenith.SummoningComponent = 5033 {
+  1    EmptyOption
+  2    EmptyOption
+  2    Int32
+  // C# Snapshot: ActivePet:Nullable<EntityId>, ActivePetType:Nullable<CraftingSkill>
+}
+
+component Zenith.SessionModifierComponent = 6100 {
+  1    Int32
+  ?    EmptyList
+  3    Bool
+  // C# Snapshot: MaxModifiersPerSession:int, ActiveModifiers:List<SessionModifierItemData>, IsModifiable:bool
+}
+
+component Zenith.PlayerBattlePassHandler = 7001 {
+  // C# Snapshot: 
+}
+
+component Zenith.PlayerAccountPersistenceComponent = 7003 {
+  1    Bool
+  ?    EmptyList
+  2    StringList
+  ?    EmptyList
+      1    String
+  3    ObjectList
+  ?    EmptyList
+      1    String
+  4    ObjectList
+  // C# Snapshot: WasInitialized:bool, ClaimedBattlePassRewardIds:List<string>, Titles:Dictionary<string,TitleInfo>, Unlocks:DiffDictionary<string,AccountUnlocksCategory>
+}
+
+component Zenith.ToyComponent = 7004 {
+  1    Int32
+  2    Bool
+  // C# Snapshot: ToyType:ToyType, RegisterForQuestsOnMiss:bool
+}
+
+component Zenith.PlannedBuildingStationComponent = 7005 {
+  ?    EmptyList
+      1    String
+      2    Int32
+  1    ObjectList
+  ?    EmptyList
+      1    String
+      2    Int32
+  2    ObjectList
+  ?    EmptyList
+      1    String
+      2    Int32
+  3    ObjectList
+  4    Bool
+  5    String
+  6    String
+  ?    EmptyList
+  8    String
+  ?    EmptyList
+  12   Float
+  13   Int64
+  14   Int64
+  ?    EmptyList
+      1    Float
+  15   ObjectList
+  16   Bool
+  17   EmptyOption
+  17   String
+  18   Bool
+  ?    EmptyList
+      1    Float
+  19   ObjectList
+  20   Bool
+  21   String
+  22   Float
+  // C# Snapshot: TotalRequiredResources:Dictionary<string,int>, DonatedResources:Dictionary<string,int>, TotalDonatedByCharId:Dictionary<string,int>, HasBeenCompleted:bool, BuildingGuid:string, BuildingHumanReadableId:string, Prefabs:List<PbcPrefabEntry>, HologramMaterialPath:string, PbcTargetPosition:Vector3d, PrefabBounds:List<BoundsSpec>, RangedDamageMultiplier:float, DecayAfterTicks:long, NextDecayTicks:long, ConditionalHealthData:Dictionary<float,PbcHealthConditionalData>, NpcsDontTarget:bool, SpawnerIdToSpawnOnCompletion:Option<string>, IsOwnedByEnemy:bool, ConditionalDecayData:Dictionary<float,PbcHealthConditionalData>, HideStation:bool, StationDescription:string, MeleeDamageMultiplier:float
+}
+
+component Zenith.ConditionalHideComponent = 7006 {
+  1    String
+  // C# Snapshot: UniqueId:string
+}
+
+component Zenith.PbcMarkerComponent = 7007 {
+  // C# Snapshot: StationId:EntityId
+}
+
+component Zenith.InteractiveCraftingStation = 7008 {
+  // C# Snapshot: 
+}
+
+component Zenith.LiveOpsManagerComponent = 7010 {
+  ?    EmptyList
+      1    String
+  1    ObjectList
+  ?    EmptyList
+      1    String
+  2    ObjectList
+  ?    EmptyList
+      1    String
+  3    ObjectList
+  ?    EmptyList
+      1    String
+  4    ObjectList
+  ?    EmptyList
+      1    String
+  5    ObjectList
+  ?    EmptyList
+      1    String
+  6    ObjectList
+  ?    EmptyList
+      1    String
+  7    ObjectList
+  // C# Snapshot: TimePeriods:DiffDictionary<string,ZenithTimePeriodJson>, ItemLootTables:DiffDictionary<string,ItemJsonLootTable>, Rewards:DiffDictionary<string,ZenithRewardsAssetJson>, BattlePasses:DiffDictionary<string,BattlePassJson>, LeaderboardDefinitions:DiffDictionary<string,LeaderboardDefinitionJson>, LeaderboardPanels:DiffDictionary<string,LeaderboardPanelJson>, StorePanels:DiffDictionary<string,StorePanelJson>
+}
+
+component Zenith.PlayerMetricsComponent = 7011 {
+  1    String
+  2    String
+  3    Int32
+  4    Int32
+  // C# Snapshot: CpuName:string, GpuName:string, CpuMemoryMb:int, GpuMemoryMb:int
+}
+
+component Zenith.PlayerNotificationComponent = 7012 {
+  // C# Snapshot: 
+}
+
+component Zenith.InstancedAreaTriggerPrefabInfoComponent = 7013 {
+  1    String
+  // C# Snapshot: PrefabAddress:string
+}
+
+component Zenith.BlackboardSyncedVariablesComponent = 7014 {
+  ?    EmptyList
+      1    String
+      2    Bytes
+  1    ObjectList
+  // C# Snapshot: Variables:DiffDictionary<string,byte[]>
+}
+
+component Zenith.BoardGameComponent = 8001 {
+  4    EmptyOption
+  4    Int32
+  5    String
+  6    Int32
+  7    Int32
+  ?    EmptyList
+  9    Bool
+  // C# Snapshot: Owner:EntityId, Host:BoardGamePlayerData, Opponent:BoardGamePlayerData, CurrentGame:Nullable<BoardGameType>, BoardState:string, CurrentPlayerTurn:BoardGamePlayer, GameState:BoardGameState, ActiveJoinRequests:List<BoardGamePlayerData>, IsOwnerStartingPlayer:bool
+}
+
+component Zenith.BoardGameTableSpawnerComponent = 8002 {
+  1    EmptyOption
+  // C# Snapshot: ActiveTable:Nullable<EntityId>
+}
+
+component Zenith.HarvestToolComponent = 9000 {
+  1    Int32
+  // C# Snapshot: AttachedToolType:HarvestToolAttachmentType
+}
+
+component Zenith.HarvestNodeComponent = 9001 {
+  ?    EmptyList
+  1    Int32List
+  // C# Snapshot: DestroyedNodes:List<int>
+}
+
+component Zenith.RefiningStationComponent = 9002 {
+  ?    EmptyList
+  2    Int32
+  3    Int32
+  // C# Snapshot: ValidRefiningRecipes:List<AbstractCraftingRecipeInfo>, TimeToRefineSeconds:int, StackSizeToRefine:int
+}
+
+component Improbable.Gdk.TransformSynchronization.TransformInternal = 11000 {
+  4    Int32
+  5    Float
+  // C# Snapshot: Location:FixedPointVector3, Rotation:CompressedQuaternion, Velocity:FixedPointVector3, PhysicsTick:uint, TicksPerSecond:float
+}
+
+component Improbable.Gdk.PlayerLifecycle.PlayerCreator = 13000 {
+  // C# Snapshot: 
+}
+
+component Improbable.Gdk.PlayerLifecycle.PlayerHeartbeatClient = 13001 {
+  // C# Snapshot: 
+}
+
+component Improbable.Gdk.PlayerLifecycle.PlayerHeartbeatServer = 13002 {
+  // C# Snapshot: 
+}
+
+component Improbable.Gdk.PlayerLifecycle.OwningWorker = 13003 {
+  // C# Snapshot: WorkerEntityId:EntityId
+}
+
+component Improbable.Gdk.Loadbalancing.Partition = 14000 {
+  1    String
+  // C# Snapshot: WorkerType:string, WorkerEntityId:EntityId
+}

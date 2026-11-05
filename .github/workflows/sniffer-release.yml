@@ -1,0 +1,102 @@
+# Builds ZenithSniffer and publishes it as a GitHub release.
+#
+# Trigger:
+#   - push a tag like  sniffer-v1.0.0          (git tag sniffer-v1.0.0 && git push origin sniffer-v1.0.0)
+#   - or run it by hand: Actions -> "Sniffer release" -> Run workflow (enter a version)
+#
+# Result: ZenithSniffer-<version>-win-x64.zip with
+#   ZenithSniffer.exe          self-contained, no .NET install needed
+#   sniffersettings.json       default settings
+#   README.md                  = docs/05_Sniffer.md
+#   THIRD-PARTY-NOTICES.txt    LiteNetLib license (MIT)
+
+name: Sniffer release
+
+on:
+  push:
+    tags: ["sniffer-v*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version (e.g. 1.0.0) – creates tag sniffer-v<version>"
+        required: true
+      prerelease:
+        description: "Mark as pre-release"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Determine version
+        id: ver
+        run: |
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            $v = "${{ inputs.version }}".Trim().TrimStart('v')
+          } else {
+            $v = "${{ github.ref_name }}" -replace '^sniffer-v', ''
+          }
+          if ($v -notmatch '^\d+\.\d+\.\d+([-+][0-9A-Za-z.-]+)?$') { throw "Invalid version '$v' (expected e.g. 1.0.0 or 1.0.0-beta1)" }
+          "version=$v"           >> $env:GITHUB_OUTPUT
+          "tag=sniffer-v$v"      >> $env:GITHUB_OUTPUT
+          "numeric=$($v -replace '[-+].*$', '')" >> $env:GITHUB_OUTPUT
+
+      - name: Publish
+        run: >
+          dotnet publish sniffer/ZenithSniffer/ZenithSniffer.csproj
+          -c Release -r win-x64 --self-contained true
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:DebugType=none
+          -p:Version=${{ steps.ver.outputs.version }}
+          -p:FileVersion=${{ steps.ver.outputs.numeric }}
+          -o publish
+
+      - name: Package
+        run: |
+          $name = "ZenithSniffer-${{ steps.ver.outputs.version }}-win-x64"
+          $dir  = "package/$name"
+          New-Item -ItemType Directory -Force $dir | Out-Null
+          Copy-Item publish/ZenithSniffer.exe, publish/sniffersettings.json $dir
+          Copy-Item docs/05_Sniffer.md "$dir/README.md"
+          $notice = "ZenithSniffer includes LiteNetLib 1.0.1.1 (https://github.com/RevenantX/LiteNetLib), MIT license:`r`n`r`n" +
+                    (Get-Content shared/LiteNetLib/LICENSE.txt -Raw)
+          Set-Content "$dir/THIRD-PARTY-NOTICES.txt" $notice -Encoding utf8
+          Get-ChildItem $dir | Format-Table Name, Length
+          Compress-Archive -Path "$dir/*" -DestinationPath "package/$name.zip"
+          "ZIP=package/$name.zip" >> $env:GITHUB_ENV
+
+      - name: Smoke test
+        run: |
+          $out = & publish/ZenithSniffer.exe help 2>&1 | Out-String
+          Write-Host $out
+          if ($out -notmatch 'proxy') { throw "ZenithSniffer.exe did not print its usage" }
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "${{ steps.ver.outputs.tag }}"
+          $notes = @"
+          ZenithSniffer ${{ steps.ver.outputs.version }} for Windows (x64). No .NET installation needed.
+
+          1. Unzip into any folder.
+          2. Follow README.md (start at section 2 – the EXE is already built).
+          3. Share captures only via ``ZenithSniffer.exe export <capture-folder>`` – never the raw capture folder.
+          "@
+          $ghArgs = @($tag, $env:ZIP, "--title", "ZenithSniffer ${{ steps.ver.outputs.version }}", "--notes", $notes, "--target", "${{ github.sha }}")
+          if ("${{ inputs.prerelease }}" -eq "true" -or "${{ steps.ver.outputs.version }}" -match '-') { $ghArgs += "--prerelease" }
+          gh release create @ghArgs
