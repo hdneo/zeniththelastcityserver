@@ -69,11 +69,81 @@ Principle: the original domains point to your own server via the **hosts file**,
 
 To undo: remove the lines from the hosts file and run `certutil -user -delstore Root <thumbprint>`.
 
-If server and client run on the same PC: use `127.0.0.1` everywhere.
+### Same-PC Windows setup
+
+From the server repository root, start a local-only instance in PowerShell:
+
+```powershell
+dotnet run --project server/ZenithServer -c Release -- --Zenith:Http:BindAddress=127.0.0.1 --Zenith:ZenFabric:BindAddress=127.0.0.1 --Zenith:Auth:AllowUnknownIdentityTokens=false --Zenith:Http:LogBodies=false --Zenith:ZenFabric:CapturePackets=false
+```
+
+The server prints the generated certificate path on startup. Install the certificate for the Windows user who launches the game.
+
+With Node.js installed, run the client through the process-local proxy from the server repository root:
+
+```powershell
+node tools/launch-local-client.mjs "..\Zenith MMO\UnityClient@Windows.exe"
+```
+
+The launcher sets `HTTPS_PROXY` for this instance of Unity. It sends Zenith, PlayFab and the build metadata requests to the local server while keeping their original TLS hostnames. Set `ZENITH_LOCAL_HTTPS_PORT` to match the server if you changed its HTTPS port. Unity options can follow the executable path.
+
+For the hosts file setup, use `127.0.0.1` for the three entries above and add the build metadata host:
+
+```text
+127.0.0.1 ramenvr.sfo3.digitaloceanspaces.com
+```
+
+Use a signed-in Steam session with SteamVR running. In the server console, `GET /api/status` and `GET /api/build/56557` confirm the Unity client reached local HTTPS. After platform login, look for `/api/realm/join` and `ZenFabric: worker authenticated` to confirm the UDP connection. See [server status](06_Server.md) for the implemented character-selection steps.
+
+### Connecting from a second PC on the LAN
+
+Set the server's `Zenith:PublicHost` to its LAN IP. Bind HTTPS and ZenFabric UDP to the LAN IP or `0.0.0.0`, and allow incoming TCP 443 and UDP 7777 on the LAN. Set `Zenith:Auth:AllowUnknownIdentityTokens` to `false`.
+
+On each player PC, import the server's `.cer` for that Windows user. Set the launcher target to the server's LAN IP in the terminal you use to launch the game.
+
+```powershell
+$env:ZENITH_LOCAL_HOST = '192.168.1.50'
+node tools/launch-local-client.mjs 'D:\Games\Zenith\UnityClient@Windows.exe'
+```
+
+Use a separate game account for each player. Choose the same realm and enter the same area to see each other.
+
+### Testing startup without a headset
+
+SteamVR includes a virtual headset driver called `null`. Exit any running SteamVR session first. In the PowerShell session you will use to launch Zenith, set up a separate SteamVR profile:
+
+```powershell
+$env:VR_OVERRIDE = 'C:\Program Files (x86)\Steam\steamapps\common\SteamVR'
+$env:VR_CONFIG_PATH = Join-Path $env:LOCALAPPDATA 'ZenithDev\steamvr-null\config'
+$env:VR_LOG_PATH = Join-Path $env:LOCALAPPDATA 'ZenithDev\steamvr-null\logs'
+New-Item -ItemType Directory -Force $env:VR_CONFIG_PATH, $env:VR_LOG_PATH | Out-Null
+@'
+{
+  "steamvr": { "forcedDriver": "null", "requireHmd": false, "enableHomeApp": false },
+  "driver_null": { "enable": true }
+}
+'@ | Set-Content (Join-Path $env:VR_CONFIG_PATH 'steamvr.vrsettings') -Encoding utf8
+& (Join-Path $env:VR_OVERRIDE 'bin\win64\vrstartup.exe')
+```
+
+Run the Zenith launcher in that same PowerShell session. To test through character selection without controllers, use the client's simulation sign-in. Use disposable local credentials because Unity logs its command-line arguments.
+
+```powershell
+$instructions = Join-Path $env:TEMP 'zenith-empty-instructions.json'
+'{"doScreenshots":false,"instructions":[]}' | Set-Content $instructions -Encoding utf8
+node tools/launch-local-client.mjs "..\Zenith MMO\UnityClient@Windows.exe" `
+  -zenithSimPlayer true -zenithInstructionsFile $instructions `
+  -zenithUsername LocalVrTest -zenithPassword LocalVrTestOnly `
+  -zenithDeploymentName zenith-local-1
+```
+
+Steam selects Infinite Realms when The Last City DLC is absent. The default local realm includes the `prod-build40_rei` tag so the Infinite Realms client can discover it. Include that tag when configuring your own realm list. The captured character commands in this project come from The Last City.
+
+To test world entry, append `-zenithCharacterName` followed by the name of a character saved on the disposable account. The simulation exits after it reaches the world and finishes its instruction list.
 
 ### Notes
 
-- The hosts entries only affect these three domains. Other services (Oculus, Steam, Vivox voice chat, Sentry) keep going to the originals or disappear after the shutdown.
+- Steam, Oculus, Vivox voice chat and Sentry still use their own service domains.
 - The platform login (`loginrift`/`loginsteam`) sends the server an Oculus or Steam proof. ZenithServer does not verify it and creates an account per platform user ID automatically (`Auth.AutoRegister`).
 - Confirmed by the sniffer: the game trusts a CA imported into the Windows **user** certificate store.
 - After December 18 the original servers are gone – make captures (see `05_Sniffer.md`) **now**.

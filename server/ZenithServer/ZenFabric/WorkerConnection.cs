@@ -24,6 +24,8 @@ public sealed class WorkerConnection
     public string WorkerId { get; set; } = "";
     public string WorkerType { get; set; } = "UnityClient";
     public Session? Session { get; set; }
+    public string Realm { get; set; } = "";
+    internal (string Realm, string Area)? SharedSpace { get; set; }
     public HashSet<long> VisibleEntities { get; } = [];
     /// <summary>Entity -> component sets this worker is currently authoritative for.</summary>
     public Dictionary<long, HashSet<uint>> Authority { get; } = new();

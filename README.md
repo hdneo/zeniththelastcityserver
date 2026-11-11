@@ -53,8 +53,8 @@ or on GitHub: **Actions → Sniffer release → Run workflow** and enter a versi
 | Protocol (transport, handshake, all 28 ops, SchemaObject) | reconstructed, implemented, confirmed against live captures |
 | LiteNetLib compatibility | modified window size (512) found and bundled |
 | Sniffer | proxy mode works against the live servers; MxO-style text logs, Wireshark pcaps, sanitized export |
-| Login/realm/join (HTTP) | implemented, formats from client and live captures; not yet tested with the real game against our own server |
+| Login/realm/join | stock Windows client verified through HTTPS sign-in and ZenFabric UDP authentication on a loopback test realm |
 | PlayFab | basic emulation, the rest as logged stubs |
-| Game world / game logic | skeleton only (PlayerCreator) – to be rebuilt from captures |
+| Game world / game logic | player setup, clock sync, persistent characters and Neo City spawn for Infinite Realms. World population and gameplay are pending. |
 
 Language: all docs, code comments and console output are in English (only some output inside the Python analysis scripts is still German).

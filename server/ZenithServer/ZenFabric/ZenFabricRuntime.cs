@@ -6,6 +6,7 @@ using LiteNetLib;
 using Zenith.Protocol.Components;
 using Zenith.Protocol.ZenFabric;
 using ZenithServer.Accounts;
+using ZenithServer.Storage;
 
 namespace ZenithServer.ZenFabric;
 
@@ -30,7 +31,7 @@ public sealed class ZenFabricRuntime : BackgroundService, INetEventListener
     private readonly Dictionary<long, (WorkerConnection Caller, long OriginalRequestId, uint ComponentId, uint CommandIndex)> _pendingCommands = new();
     private readonly RSA _rsa;
     private readonly ZfCaptureWriter? _capture;
-    private readonly string _worldPath;
+    private readonly IGameStorage _storage;
     private NetManager? _net;
     private long _nextServerRequestId = 1_000_000;
 
@@ -38,14 +39,15 @@ public sealed class ZenFabricRuntime : BackgroundService, INetEventListener
     public IEnumerable<WorkerConnection> Workers => _workers.Values;
     public IEnumerable<WorkerConnection> ReadyWorkers => _workers.Values.Where(w => w.State == WorkerState.Ready);
 
-    public ZenFabricRuntime(ServerOptions opts, AccountStore accounts, IGameLogic logic, ILogger<ZenFabricRuntime> log)
+    public ZenFabricRuntime(ServerOptions opts, AccountStore accounts, IGameStorage storage, IGameLogic logic,
+        ILogger<ZenFabricRuntime> log)
     {
         _opts = opts;
         _accounts = accounts;
+        _storage = storage;
         _logic = logic;
         _log = log;
         _rsa = ZfCodec.LoadOrCreateRsa(Path.Combine(opts.DataDirectory, "zenfabric_rsa.pem"));
-        _worldPath = Path.Combine(opts.DataDirectory, "world.json");
         if (opts.ZenFabric.CapturePackets)
             _capture = new ZfCaptureWriter(Path.Combine(opts.DataDirectory, "logs", $"zenfabric-{DateTime.Now:yyyyMMdd-HHmmss}.zfcap"));
     }
@@ -58,14 +60,16 @@ public sealed class ZenFabricRuntime : BackgroundService, INetEventListener
 
     private void Loop(CancellationToken ct)
     {
-        Entities.Load(_worldPath);
+        Entities.RestoreSnapshot(_storage.LoadWorld());
         _net = new NetManager(this)
         {
             DisconnectTimeout = _opts.ZenFabric.DisconnectTimeoutMs,
             AutoRecycle = true,
             UnconnectedMessagesEnabled = false,
         };
-        if (!_net.Start(IPAddress.Any, IPAddress.IPv6Any, _opts.ZenFabric.Port))
+        var bindAddress = IPAddress.Parse(_opts.ZenFabric.BindAddress);
+        if (!bindAddress.Equals(IPAddress.Any)) _net.IPv6Mode = IPv6Mode.Disabled;
+        if (!_net.Start(bindAddress, IPAddress.IPv6Any, _opts.ZenFabric.Port))
         {
             _log.LogCritical("ZenFabric: UDP port {Port} could not be opened", _opts.ZenFabric.Port);
             return;
@@ -102,7 +106,7 @@ public sealed class ZenFabricRuntime : BackgroundService, INetEventListener
 
     private void SaveWorld()
     {
-        try { Entities.Save(_worldPath); }
+        try { _storage.SaveWorld(Entities.WriteSnapshot()); }
         catch (Exception ex) { _log.LogWarning(ex, "World could not be saved"); }
     }
 
@@ -269,34 +273,68 @@ public sealed class ZenFabricRuntime : BackgroundService, INetEventListener
             }
         }
 
+        w.Realm = w.Session?.DeploymentId ?? _opts.Realms.FirstOrDefault()?.Id ?? "";
         w.WorkerEntityId = Entities.Allocate();
-        w.WorkerId = $"{w.WorkerType}{w.WorkerEntityId}";
+        w.WorkerId = w.Session?.PlayFabId ?? $"{w.WorkerType}{w.WorkerEntityId}";
         w.State = WorkerState.Ready;
         _log.LogInformation("ZenFabric: worker authenticated: {Worker} (key {Len} bytes)", w.Display, w.Key.Length);
 
         Send(w, new InitWorkerOp { WorkerEntityId = w.WorkerEntityId });
-        foreach (var (k, v) in _opts.ZenFabric.WorkerFlags)
-            Send(w, new FlagUpdateOp { Name = k, Value = v });
-
-        // Worker entity (internal, like in SpatialOS) – not distributed to other clients.
-        Entities.Create(w.WorkerEntityId,
+        var workerEntity = Entities.Create(w.WorkerEntityId,
         [
-            new ComponentData(Ids.Metadata, StandardComponents.Metadata("Worker")),
             new ComponentData(Ids.Worker, StandardComponents.Worker(w.WorkerId, w.WorkerType)),
         ]);
+        MakeVisible(w, workerEntity);
 
-        // Make all existing entities visible.
+        // Populate the worker's view before signaling that it is synchronized.
         foreach (var e in Entities.Entities.Values.ToList())
-            if (IsVisibleTo(e, w)) MakeVisible(w, e);
+            if (e.Id != w.WorkerEntityId && IsVisibleTo(e, w)) MakeVisible(w, e);
+
+        foreach (var (k, v) in _opts.ZenFabric.WorkerFlags)
+            Send(w, new FlagUpdateOp { Name = k, Value = v });
 
         try { _logic.OnWorkerReady(this, w); } catch (Exception ex) { _log.LogError(ex, "OnWorkerReady"); }
     }
 
-    /// <summary>Visibility: currently global visibility (everyone sees everything) except other workers' entities.</summary>
-    private bool IsVisibleTo(StoredEntity e, WorkerConnection w)
+    private static bool HasOwnerAccess(StoredEntity entity, WorkerConnection worker) =>
+        (!entity.Components.ContainsKey(Ids.Worker) || entity.Id == worker.WorkerEntityId) &&
+        (entity.VisibleToWorker is null || entity.VisibleToWorker == worker.WorkerEntityId);
+
+    private static bool IsVisibleTo(StoredEntity entity, WorkerConnection worker) =>
+        HasOwnerAccess(entity, worker) || entity.SharedSpace is not null && entity.SharedSpace == worker.SharedSpace;
+
+    private static bool CanSeeComponent(StoredEntity entity, WorkerConnection worker, uint componentId) =>
+        HasOwnerAccess(entity, worker) || CharacterEntities.PeerComponents.Contains(componentId);
+
+    public void SetPlayerArea(WorkerConnection worker, string? area)
     {
-        // Worker entities stay internal (the original behavior is unknown).
-        return !e.Components.ContainsKey(Ids.Worker);
+        (string, string)? space = area is null ? null : (worker.Realm, area);
+        if (worker.SharedSpace == space) return;
+        worker.SharedSpace = space;
+        foreach (var entity in Entities.Entities.Values.Where(e => e.ShareInArea))
+        {
+            if (entity.VisibleToWorker == worker.WorkerEntityId)
+            {
+                entity.SharedSpace = space;
+                foreach (var peer in ReadyWorkers) RefreshVisibility(peer, entity);
+            }
+            else
+            {
+                RefreshVisibility(worker, entity);
+            }
+        }
+    }
+
+    private void RefreshVisibility(WorkerConnection worker, StoredEntity entity)
+    {
+        if (IsVisibleTo(entity, worker)) MakeVisible(worker, entity);
+        else HideEntity(worker, entity.Id);
+    }
+
+    private void HideEntity(WorkerConnection worker, long entityId)
+    {
+        worker.Authority.Remove(entityId);
+        if (worker.VisibleEntities.Remove(entityId)) Send(worker, new RemoveEntityOp { EntityId = entityId });
     }
 
     private void MakeVisible(WorkerConnection w, StoredEntity e)
@@ -305,6 +343,7 @@ public sealed class ZenFabricRuntime : BackgroundService, INetEventListener
         Send(w, new AddEntityOp { EntityId = e.Id });
         foreach (var (cid, c) in e.Components)
         {
+            if (!CanSeeComponent(e, w, cid)) continue;
             Send(w, new AddComponentOp { EntityId = e.Id, Data = new ComponentData(cid, c.Data) });
             foreach (var u in c.UpdateLog)
                 Send(w, new ComponentUpdateOp { EntityId = e.Id, ComponentId = cid, Data = u });
@@ -344,13 +383,22 @@ public sealed class ZenFabricRuntime : BackgroundService, INetEventListener
     }
 
     /// <summary>Creates an entity (from workers or the built-in game logic).</summary>
-    public StoredEntity CreateEntity(long entityId, IEnumerable<ComponentData> components)
+    public StoredEntity CreateEntity(long entityId, IEnumerable<ComponentData> components, long? visibleToWorker = null, bool shareInArea = false)
     {
         var id = entityId != 0 ? entityId : Entities.Allocate();
-        var e = Entities.Create(id, components);
+        var e = Entities.Create(id, components, visibleToWorker, shareInArea);
+        if (shareInArea)
+            e.SharedSpace = ReadyWorkers.FirstOrDefault(w => w.WorkerEntityId == visibleToWorker)?.SharedSpace;
         foreach (var w in ReadyWorkers.ToList())
             if (IsVisibleTo(e, w)) MakeVisible(w, e);
         return e;
+    }
+
+    public void ReplaceComponentSnapshot(StoredEntity entity, uint componentId, byte[] snapshot, byte[] update)
+    {
+        entity.Components[componentId] = new StoredComponent { Data = snapshot };
+        Broadcast(new ComponentUpdateOp { EntityId = entity.Id, ComponentId = componentId, Data = update },
+            filter: worker => worker.VisibleEntities.Contains(entity.Id) && CanSeeComponent(entity, worker, componentId));
     }
 
     private void HandleCreateEntity(WorkerConnection w, CreateEntityRequestOp c)
@@ -366,14 +414,27 @@ public sealed class ZenFabricRuntime : BackgroundService, INetEventListener
 
     public void DeleteEntity(long entityId, (WorkerConnection Worker, long RequestId)? requester)
     {
-        var ok = Entities.Delete(entityId);
-        foreach (var w in ReadyWorkers)
+        var entity = Entities.Get(entityId);
+        if (requester is { } client && entity?.VisibleToWorker is not null && IsVisibleTo(entity, client.Worker))
         {
-            w.Authority.Remove(entityId);
-            if (w.VisibleEntities.Remove(entityId)) Send(w, new RemoveEntityOp { EntityId = entityId });
+            Send(client.Worker, new DeleteEntityResponseOp
+            {
+                RequestId = client.RequestId, EntityId = entityId, Status = StatusCode.PermissionDenied,
+                Message = "The server manages this entity",
+            });
+            return;
         }
+        var ok = entity is not null && (requester is null || IsVisibleTo(entity, requester.Value.Worker))
+            && Entities.Delete(entityId);
+        if (!ok)
+        {
+            if (requester is { } missing)
+                Send(missing.Worker, new DeleteEntityResponseOp { RequestId = missing.RequestId, EntityId = entityId, Status = StatusCode.NotFound, Message = "Entity not found" });
+            return;
+        }
+        foreach (var w in ReadyWorkers) HideEntity(w, entityId);
         if (requester is { } r)
-            Send(r.Worker, new DeleteEntityResponseOp { RequestId = r.RequestId, EntityId = entityId, Status = ok ? StatusCode.Success : StatusCode.NotFound, Message = ok ? "" : "Entity not found" });
+            Send(r.Worker, new DeleteEntityResponseOp { RequestId = r.RequestId, EntityId = entityId, Status = StatusCode.Success });
     }
 
     private void HandleEntityQuery(WorkerConnection w, EntityQueryRequestOp q)
@@ -386,10 +447,10 @@ public sealed class ZenFabricRuntime : BackgroundService, INetEventListener
             constraint = new QueryConstraint();
         }
         var results = Entities.Entities.Values
-            .Where(e => !e.Components.ContainsKey(Ids.Worker))
-            .Where(e => constraint.Matches(e.Id, e.Components.Keys,
+            .Where(e => IsVisibleTo(e, w) && !e.Components.ContainsKey(Ids.Worker))
+            .Where(e => constraint.Matches(e.Id, e.Components.Keys.Where(id => CanSeeComponent(e, w, id)).ToArray(),
                 setId => ComponentCatalog.Sets.TryGetValue(setId, out var s) ? s.ComponentIds : []))
-            .Select(e => e.ToEntityData())
+            .Select(e => e.ToEntityData(id => CanSeeComponent(e, w, id)))
             .ToList();
         Send(w, new EntityQueryResponseOp { RequestId = q.RequestId, Status = StatusCode.Success, Results = results });
     }
@@ -397,9 +458,10 @@ public sealed class ZenFabricRuntime : BackgroundService, INetEventListener
     private void HandleAddComponent(WorkerConnection w, AddComponentOp a)
     {
         var e = Entities.Get(a.EntityId);
-        if (e is null) { _log.LogWarning("AddComponent for unknown entity {Id}", a.EntityId); return; }
+        if (e is null || !HasOwnerAccess(e, w)) { _log.LogWarning("AddComponent for unknown entity {Id}", a.EntityId); return; }
+        if (e.VisibleToWorker is not null && AuthoritativeWorkerFor(e, a.Data.ComponentId) != w.WorkerEntityId) return;
         e.Components[a.Data.ComponentId] = new StoredComponent { Data = a.Data.Data };
-        Broadcast(a, except: w, filter: x => x.VisibleEntities.Contains(e.Id));
+        Broadcast(a, except: w, filter: x => x.VisibleEntities.Contains(e.Id) && CanSeeComponent(e, x, a.Data.ComponentId));
         if (a.Data.ComponentId == Ids.AuthorityDelegation)
             foreach (var x in ReadyWorkers) UpdateAuthority(x, e);
     }
@@ -407,12 +469,15 @@ public sealed class ZenFabricRuntime : BackgroundService, INetEventListener
     private void HandleComponentUpdate(WorkerConnection w, ComponentUpdateOp u)
     {
         var e = Entities.Get(u.EntityId);
-        if (e is null) return;
+        if (e is null || !HasOwnerAccess(e, w)) return;
         var auth = AuthoritativeWorkerFor(e, u.ComponentId);
+        if (e.VisibleToWorker is not null && auth != w.WorkerEntityId) return;
         if (auth != 0 && auth != w.WorkerEntityId)
             _log.LogDebug("Update {Comp} on {Entity} from non-authoritative worker {Worker}", u.ComponentId, e.Id, w.WorkerEntityId);
         Entities.ApplyUpdate(e, u.ComponentId, u.Data, _opts.ZenFabric.MaxUpdateLogPerComponent);
-        Broadcast(u, except: w, filter: x => x.VisibleEntities.Contains(e.Id));
+        if (auth == w.WorkerEntityId && u.ComponentId is Ids.Position or Ids.ZSyncComponent)
+            _logic.OnComponentUpdate(this, w, u);
+        Broadcast(u, except: w, filter: x => x.VisibleEntities.Contains(e.Id) && CanSeeComponent(e, x, u.ComponentId));
         if (u.ComponentId == Ids.AuthorityDelegation)
             foreach (var x in ReadyWorkers) UpdateAuthority(x, e);
     }
@@ -423,7 +488,7 @@ public sealed class ZenFabricRuntime : BackgroundService, INetEventListener
     {
         req.CallerWorkerEntityId = caller.WorkerEntityId;
         var e = Entities.Get(req.EntityId);
-        if (e is null)
+        if (e is null || !HasOwnerAccess(e, caller))
         {
             SendCommandFailure(caller, req, StatusCode.NotFound, $"Entity {req.EntityId} not found");
             return;

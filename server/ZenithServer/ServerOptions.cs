@@ -18,6 +18,9 @@ public sealed class ServerOptions
 
     /// <summary>Value for NoodleAuthResponse.projectId (from NoodleAuthConfig.ProjectID in the client).</summary>
     public string ProjectId { get; set; } = "beta_mexico_eight_889";
+
+    /// <summary>One-time local balance for the Neo City cosmetic kiosk.</summary>
+    public int StartingZennies { get; set; } = 5000;
 }
 
 public sealed class HttpOptions
@@ -32,6 +35,7 @@ public sealed class HttpOptions
 
 public sealed class ZenFabricOptions
 {
+    public string BindAddress { get; set; } = "0.0.0.0";
     public int Port { get; set; } = 7777;
     public int DisconnectTimeoutMs { get; set; } = 30000;
     /// <summary>Write all ZenFabric payloads (decrypted) to data/logs/*.zfcap.</summary>
@@ -41,11 +45,13 @@ public sealed class ZenFabricOptions
     /// <summary>Maximum number of remembered updates per component (for workers that join later).</summary>
     public int MaxUpdateLogPerComponent { get; set; } = 256;
     /// <summary>Worker flags sent via FlagUpdate after InitWorker.</summary>
-    public Dictionary<string, string> WorkerFlags { get; set; } = new();
+    public Dictionary<string, string> WorkerFlags { get; set; } = new() { ["synced"] = "1" };
     /// <summary>Token an external UnityGameLogic worker can use to log in (empty = off).</summary>
     public string GameLogicWorkerToken { get; set; } = "";
     /// <summary>Spawn position for newly created player entities (placeholder).</summary>
     public double[] DefaultSpawn { get; set; } = [0, 0, 0];
+    /// <summary>Overrides the default initial character position for either game mode.</summary>
+    public float[] CharacterSpawn { get; set; } = [];
 }
 
 public sealed class AuthOptions
@@ -60,9 +66,11 @@ public sealed class RealmOptions
 {
     public string Id { get; set; } = "zenith-local-1";
     public string Name { get; set; } = "Zenith Local";
-    public string Region { get; set; } = "EU";
+    public string Region { get; set; } = "eu";
     public string Status { get; set; } = "running";
     public float Load { get; set; } = 0.1f;
+    public string[] Tags { get; set; } = ["4BB7B", "prod-build40", "prod-build40_rei"];
+    public string Version { get; set; } = "cs-56555--develop";
     /// <summary>Empty = use PublicHost / ZenFabric.Port.</summary>
     public string? WorkerHost { get; set; }
     public int? WorkerPort { get; set; }

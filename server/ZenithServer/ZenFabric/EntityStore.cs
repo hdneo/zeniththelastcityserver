@@ -17,6 +17,9 @@ public sealed class StoredComponent
 public sealed class StoredEntity
 {
     public long Id { get; init; }
+    public long? VisibleToWorker { get; init; }
+    internal bool ShareInArea { get; init; }
+    internal (string Realm, string Area)? SharedSpace { get; set; }
     public Dictionary<uint, StoredComponent> Components { get; } = new();
 
     public Dictionary<uint, long> Delegations =>
@@ -25,14 +28,15 @@ public sealed class StoredEntity
     public string? EntityType =>
         Components.TryGetValue(Ids.Metadata, out var c) ? StandardComponents.ReadMetadata(c.Data) : null;
 
-    public EntityData ToEntityData() => new()
+    public EntityData ToEntityData(Func<uint, bool>? includeComponent = null) => new()
     {
         EntityId = Id,
-        Components = Components.Select(kv => new ComponentData(kv.Key, kv.Value.Data)).ToList(),
+        Components = Components.Where(kv => includeComponent is null || includeComponent(kv.Key))
+            .Select(kv => new ComponentData(kv.Key, kv.Value.Data)).ToList(),
     };
 }
 
-/// <summary>In-memory entity database with JSON snapshot (only entities with the Persistence component).</summary>
+/// <summary>In-memory entity database. Only entities with the Persistence component are snapshotted.</summary>
 public sealed class EntityStore
 {
     /// <summary>Components with exactly one field: an update contains the complete new state.</summary>
@@ -54,9 +58,9 @@ public sealed class EntityStore
 
     public StoredEntity? Get(long id) => _entities.GetValueOrDefault(id);
 
-    public StoredEntity Create(long id, IEnumerable<ComponentData> components)
+    public StoredEntity Create(long id, IEnumerable<ComponentData> components, long? visibleToWorker = null, bool shareInArea = false)
     {
-        var e = new StoredEntity { Id = id };
+        var e = new StoredEntity { Id = id, VisibleToWorker = visibleToWorker, ShareInArea = shareInArea };
         foreach (var c in components) e.Components[c.ComponentId] = new StoredComponent { Data = c.Data };
         _entities[id] = e;
         if (id >= _nextId) _nextId = id + 1;
@@ -85,25 +89,22 @@ public sealed class EntityStore
 
     private sealed record SnapshotEntity(long Id, Dictionary<uint, string> Components, Dictionary<uint, List<string>>? Updates);
 
-    public void Save(string path)
+    public string WriteSnapshot()
     {
         var list = _entities.Values
-            .Where(e => e.Components.ContainsKey(Ids.Persistence))
+            .Where(e => e.VisibleToWorker is null && e.Components.ContainsKey(Ids.Persistence))
             .Select(e => new SnapshotEntity(e.Id,
                 e.Components.ToDictionary(kv => kv.Key, kv => Convert.ToBase64String(kv.Value.Data)),
                 e.Components.Where(kv => kv.Value.UpdateLog.Count > 0)
                     .ToDictionary(kv => kv.Key, kv => kv.Value.UpdateLog.Select(Convert.ToBase64String).ToList())))
             .ToList();
-        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
-        var tmp = path + ".tmp";
-        File.WriteAllText(tmp, JsonSerializer.Serialize(new { nextId = _nextId, entities = list }, new JsonSerializerOptions { WriteIndented = true }));
-        File.Move(tmp, path, true);
+        return JsonSerializer.Serialize(new { nextId = _nextId, entities = list }, new JsonSerializerOptions { WriteIndented = true });
     }
 
-    public void Load(string path)
+    public void RestoreSnapshot(string? snapshot)
     {
-        if (!File.Exists(path)) return;
-        using var doc = JsonDocument.Parse(File.ReadAllText(path));
+        if (snapshot is null) return;
+        using var doc = JsonDocument.Parse(snapshot);
         _nextId = doc.RootElement.GetProperty("nextId").GetInt64();
         foreach (var el in doc.RootElement.GetProperty("entities").EnumerateArray())
         {

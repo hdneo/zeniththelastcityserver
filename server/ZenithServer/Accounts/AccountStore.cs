@@ -1,7 +1,8 @@
 using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json;
+using System.Text.Json.Nodes;
+using ZenithServer.Storage;
 
 namespace ZenithServer.Accounts;
 
@@ -19,7 +20,52 @@ public sealed class Account
     public Dictionary<string, string> UserData { get; set; } = new();
     public Dictionary<string, string> ReadOnlyData { get; set; } = new();
     public Dictionary<string, int> Statistics { get; set; } = new();
+    public JsonObject Preferences { get; set; } = new();
+    public List<StoredCharacter> Characters { get; set; } = [];
+    public List<StoredPlayerReport> PlayerReports { get; set; } = [];
+    public int? LocalZennies { get; set; }
+    public List<string> CosmeticItems { get; set; } = [];
+
+    internal Account Copy()
+    {
+        var copy = (Account)MemberwiseClone();
+        copy.UserData = new(UserData, UserData.Comparer);
+        copy.ReadOnlyData = new(ReadOnlyData, ReadOnlyData.Comparer);
+        copy.Statistics = new(Statistics, Statistics.Comparer);
+        copy.Preferences = (JsonObject)Preferences.DeepClone();
+        copy.Characters = [..Characters];
+        copy.PlayerReports = [..PlayerReports];
+        copy.CosmeticItems = [..CosmeticItems];
+        return copy;
+    }
+
+    internal void Restore(Account original)
+    {
+        PlayFabId = original.PlayFabId;
+        Username = original.Username;
+        Email = original.Email;
+        PasswordHash = original.PasswordHash;
+        PlatformUserId = original.PlatformUserId;
+        Platform = original.Platform;
+        Created = original.Created;
+        LastLogin = original.LastLogin;
+        UserData = original.UserData;
+        ReadOnlyData = original.ReadOnlyData;
+        Statistics = original.Statistics;
+        Preferences = original.Preferences;
+        Characters = original.Characters;
+        PlayerReports = original.PlayerReports;
+        LocalZennies = original.LocalZennies;
+        CosmeticItems = original.CosmeticItems;
+    }
 }
+
+public sealed record StoredCharacter(string Id, string Name, uint Type, uint Role, uint Gender,
+    IReadOnlyDictionary<uint, string> Appearance);
+
+public sealed record StoredPlayerReport(string ReporteeId, string? Comment, DateTimeOffset SubmittedAt);
+
+internal sealed record CosmeticWallet(int Balance, string[] Items);
 
 public sealed class Session
 {
@@ -33,40 +79,28 @@ public sealed class Session
     public DateTime Created { get; } = DateTime.UtcNow;
 }
 
-/// <summary>Thread-safe, JSON-persisted account database (data/accounts.json).</summary>
+/// <summary>In-memory accounts backed by the configured game storage.</summary>
 public sealed class AccountStore
 {
-    private readonly string _path;
+    private readonly IGameStorage _storage;
     private readonly object _lock = new();
     private readonly Dictionary<string, Account> _byId = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, Session> _sessionsByTicket = new();
     private readonly ConcurrentDictionary<string, Session> _sessionsByToken = new();
     private readonly ConcurrentDictionary<string, Session> _sessionsByIdentity = new();
     private readonly ILogger<AccountStore> _log;
-    private static readonly JsonSerializerOptions Json = new() { WriteIndented = true };
+    private readonly int _startingZennies;
 
-    public AccountStore(ServerOptions opts, ILogger<AccountStore> log)
+    public AccountStore(ServerOptions opts, IGameStorage storage, ILogger<AccountStore> log)
     {
         _log = log;
-        _path = Path.Combine(opts.DataDirectory, "accounts.json");
-        if (File.Exists(_path))
-        {
-            var list = JsonSerializer.Deserialize<List<Account>>(File.ReadAllText(_path)) ?? [];
-            foreach (var a in list) _byId[a.PlayFabId] = a;
-            _log.LogInformation("{Count} accounts loaded", _byId.Count);
-        }
+        _storage = storage;
+        _startingZennies = Math.Max(0, opts.StartingZennies);
+        foreach (var account in _storage.LoadAccounts()) _byId[account.PlayFabId] = account;
+        _log.LogInformation("{Count} accounts loaded", _byId.Count);
     }
 
-    public void Save()
-    {
-        lock (_lock)
-        {
-            Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(_path))!);
-            var tmp = _path + ".tmp";
-            File.WriteAllText(tmp, JsonSerializer.Serialize(_byId.Values.ToList(), Json));
-            File.Move(tmp, _path, true);
-        }
-    }
+    private void Save(Account account) => _storage.SaveAccount(account, _byId.Values);
 
     public static string NewPlayFabId() => Convert.ToHexString(RandomNumberGenerator.GetBytes(8));
     public static string NewToken(int bytes = 24) => Convert.ToBase64String(RandomNumberGenerator.GetBytes(bytes)).TrimEnd('=').Replace('+', '-').Replace('/', '_');
@@ -102,6 +136,91 @@ public sealed class AccountStore
         lock (_lock) return _byId.Values.FirstOrDefault(a => string.Equals(a.Username, username, StringComparison.OrdinalIgnoreCase));
     }
 
+    public JsonObject ReadPreferences(Account account)
+    {
+        lock (_lock) return (JsonObject)account.Preferences.DeepClone();
+    }
+
+    internal CosmeticWallet ReadCosmeticWallet(Account account)
+    {
+        lock (_lock) return new(account.LocalZennies ?? _startingZennies, account.CosmeticItems.ToArray());
+    }
+
+    internal (int Before, CosmeticWallet Wallet, bool Succeeded, bool Purchased) BuyCosmetic(Account account,
+        string itemId, int price)
+    {
+        lock (_lock)
+        {
+            var before = account.LocalZennies ?? _startingZennies;
+            if (account.CosmeticItems.Contains(itemId, StringComparer.Ordinal))
+                return (before, ReadCosmeticWallet(account), true, false);
+            if (before < price) return (before, ReadCosmeticWallet(account), false, false);
+
+            var oldBalance = account.LocalZennies;
+            account.LocalZennies = before - price;
+            account.CosmeticItems.Add(itemId);
+            try { Save(account); }
+            catch
+            {
+                account.LocalZennies = oldBalance;
+                account.CosmeticItems.RemoveAt(account.CosmeticItems.Count - 1);
+                throw;
+            }
+            return (before, ReadCosmeticWallet(account), true, true);
+        }
+    }
+
+    public (bool Updated, int SubmissionsRemaining) ReportPlayer(Account reporter, Account reportee, string? comment)
+    {
+        const int dailyLimit = 5;
+        lock (_lock)
+        {
+            var now = DateTimeOffset.UtcNow;
+            var used = reporter.PlayerReports.Count(report => report.SubmittedAt.UtcDateTime.Date == now.UtcDateTime.Date);
+            if (used >= dailyLimit) return (false, 0);
+
+            reporter.PlayerReports.Add(new StoredPlayerReport(reportee.PlayFabId, comment, now));
+            try { Save(reporter); }
+            catch
+            {
+                reporter.PlayerReports.RemoveAt(reporter.PlayerReports.Count - 1);
+                throw;
+            }
+            return (true, dailyLimit - used - 1);
+        }
+    }
+
+    public StoredCharacter[] ListCharacters(Account account)
+    {
+        lock (_lock) return account.Characters.ToArray();
+    }
+
+    public bool IsCharacterNameAvailable(string name)
+    {
+        lock (_lock)
+            return !_byId.Values.SelectMany(a => a.Characters)
+                .Any(c => string.Equals(c.Name, name, StringComparison.OrdinalIgnoreCase));
+    }
+
+    public StoredCharacter? CreateCharacter(Account account, string name, uint type, uint role, uint gender,
+        IReadOnlyDictionary<uint, string> appearance)
+    {
+        lock (_lock)
+        {
+            if (!IsCharacterNameAvailable(name)) return null;
+
+            var character = new StoredCharacter(NewPlayFabId(), name, type, role, gender, appearance);
+            account.Characters.Add(character);
+            try { Save(account); }
+            catch
+            {
+                account.Characters.RemoveAt(account.Characters.Count - 1);
+                throw;
+            }
+            return character;
+        }
+    }
+
     public Account Create(string username, string? platformUserId, string? email = null, string? password = null)
     {
         var a = new Account
@@ -112,16 +231,36 @@ public sealed class AccountStore
             Email = email,
             PasswordHash = string.IsNullOrEmpty(password) ? null : HashPassword(password),
         };
-        lock (_lock) _byId[a.PlayFabId] = a;
-        Save();
+        lock (_lock)
+        {
+            _byId.Add(a.PlayFabId, a);
+            try { Save(a); }
+            catch
+            {
+                _byId.Remove(a.PlayFabId);
+                throw;
+            }
+        }
         _log.LogInformation("Account created: {Name} ({Id})", a.Username, a.PlayFabId);
         return a;
     }
 
     public void Update(Account a, Action<Account> change)
     {
-        lock (_lock) change(a);
-        Save();
+        lock (_lock)
+        {
+            var original = a.Copy();
+            try
+            {
+                change(a);
+                Save(a);
+            }
+            catch
+            {
+                a.Restore(original);
+                throw;
+            }
+        }
     }
 
     public Session CreateSession(Account a)
@@ -133,9 +272,9 @@ public sealed class AccountStore
             AuthToken = NewToken(),
             SessionId = Guid.NewGuid().ToString(),
         };
+        Update(a, x => x.LastLogin = DateTime.UtcNow);
         _sessionsByTicket[s.SessionTicket] = s;
         _sessionsByToken[s.AuthToken] = s;
-        Update(a, x => x.LastLogin = DateTime.UtcNow);
         return s;
     }
 
