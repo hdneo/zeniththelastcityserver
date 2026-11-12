@@ -16,13 +16,18 @@ using Zenith.Protocol.ZenFabric;
 //    5. EntityQuery(PlayerCreator) -> CommandRequest PlayerCreator.CreatePlayer
 //
 //  Usage:
-//    dotnet run --project tools/ZenithTestClient -- [--nexus URL] [--skywave URL] [--user ID] [--seconds N] [--insecure]
+//    dotnet run --project tools/ZenithTestClient -- [--nexus URL] [--skywave URL] [--user ID] [--seconds N] [--character NAME [--spawn|--challenges|--revive|--shop]] [--insecure]
 //  Default: http://127.0.0.1 for both.
 // =====================================================================================
 
 string nexus = "http://127.0.0.1", skywave = "", user = "testclient-" + Environment.MachineName;
-var seconds = 10;
+int? seconds = null;
 var insecure = false;
+var spawn = false;
+var challenges = false;
+var revive = false;
+var shop = false;
+string? characterName = null;
 for (var i = 0; i < args.Length; i++)
 {
     switch (args[i])
@@ -31,8 +36,18 @@ for (var i = 0; i < args.Length; i++)
         case "--skywave": skywave = args[++i].TrimEnd('/'); break;
         case "--user": user = args[++i]; break;
         case "--seconds": seconds = int.Parse(args[++i]); break;
+        case "--character": characterName = args[++i]; break;
+        case "--spawn": spawn = true; break;
+        case "--challenges": spawn = challenges = true; break;
+        case "--revive": spawn = challenges = revive = true; break;
+        case "--shop": spawn = challenges = shop = true; break;
         case "--insecure": insecure = true; break;
     }
+}
+if (spawn && characterName is null)
+{
+    Console.Error.WriteLine("--spawn, --challenges, --revive, and --shop require --character NAME");
+    return 2;
 }
 if (skywave == "") skywave = nexus + "/api/game";
 
@@ -71,10 +86,14 @@ Step($"ZenFabric UDP {host}:{port}");
 byte[]? key = null;
 var reqId = 1L;
 long playerCreator = 0;
+long playerEntity = 0;
+long workerEntity = 0;
 var done = false;
 var ok = new HashSet<string>();
 var listener = new EventBasedNetListener();
 var net = new NetManager(listener) { DisconnectTimeout = 30000 };
+var characterCommands = characterName is null ? null : new CharacterScenario(playFabId, characterName, challenges ? 4u : 3u);
+SpawnScenario? spawnScenario = null;
 
 void Send(NetPeer p, ZfOp op)
 {
@@ -90,6 +109,21 @@ listener.NetworkReceiveEvent += (peer, reader, ch, dm) =>
     reader.Recycle();
     var op = ZfOps.Parse(payload);
     Console.WriteLine($"   <- {OpDescriber.Summary(op)}");
+    if (spawnScenario is not null)
+    {
+        var nextSpawnOp = spawnScenario.Handle(op, reqId);
+        if (nextSpawnOp is not null)
+        {
+            reqId++;
+            Send(peer, nextSpawnOp);
+        }
+        if (spawnScenario.Completed)
+        {
+            ok.Add("CharacterSpawn");
+            done = true;
+        }
+        return;
+    }
     switch (op)
     {
         case ProtocolSettingsOp ps:
@@ -98,7 +132,8 @@ listener.NetworkReceiveEvent += (peer, reader, ch, dm) =>
             Send(peer, new AuthWorkerOp { IdentityToken = identityToken, SymmetricKeyParts = ZfCodec.EncryptSymmetricKey(newKey, ps.Modulus, ps.Exponent) });
             key = newKey; // encrypted from now on (like Connection.OnNetworkReceive in the client)
             break;
-        case InitWorkerOp:
+        case InitWorkerOp initialized:
+            workerEntity = initialized.WorkerEntityId;
             ok.Add("InitWorker");
             Send(peer, new PingOp { RequestId = reqId++ });
             // QueryConstraint with component_constraint = PlayerCreator (13000)
@@ -121,24 +156,52 @@ listener.NetworkReceiveEvent += (peer, reader, ch, dm) =>
             break;
         case CommandResponseOp cr when cr.ComponentId == Ids.PlayerCreator:
             ok.Add("CreatePlayer:" + cr.Status);
+            if (cr.Status == StatusCode.Success && characterCommands is not null)
+            {
+                playerEntity = ReadCreatedPlayer(cr.Data);
+                Send(peer, characterCommands.ValidateName(reqId++));
+            }
+            break;
+        case CommandResponseOp cr when cr.ComponentId == Ids.CharacterSpawnerComponent && characterCommands is not null:
+            var next = characterCommands.Handle(cr, reqId++);
+            if (next is not null) Send(peer, next);
+            if (characterCommands.Completed)
+            {
+                ok.Add("CharacterRoster");
+                if (spawn)
+                {
+                    spawnScenario = new SpawnScenario(playFabId, sessionTicket, characterCommands.CharacterId!, characterName!,
+                        playerEntity, workerEntity, challenges, shop, revive);
+                    Send(peer, spawnScenario.Start(reqId++));
+                }
+                else done = true;
+            }
             break;
     }
 };
 
 net.Start();
 net.Connect(host, port, joinToken);
-var until = DateTime.UtcNow.AddSeconds(seconds);
+var until = DateTime.UtcNow.AddSeconds(seconds ?? (revive ? 90 : challenges ? 240 : 10));
 while (!done && DateTime.UtcNow < until)
 {
     net.PollEvents();
+    if (!done && net.FirstPeer is { } activePeer && spawnScenario?.PollEncounter(reqId) is { } encounterOp)
+    {
+        reqId++;
+        Send(activePeer, encounterOp);
+    }
     Thread.Sleep(5);
 }
 net.Stop();
 
 Step("Result");
-foreach (var s in new[] { "ProtocolSettings", "InitWorker", "Pong", "EntityQuery", "CreatePlayer:Success" })
+var expected = new List<string> { "ProtocolSettings", "InitWorker", "Pong", "EntityQuery", "CreatePlayer:Success" };
+if (characterCommands is not null) expected.Add("CharacterRoster");
+if (spawn) expected.Add("CharacterSpawn");
+foreach (var s in expected)
     Console.WriteLine($"   [{(ok.Contains(s) ? "OK" : "--")}] {s}");
-return ok.Contains("CreatePlayer:Success") ? 0 : 1;
+return expected.All(ok.Contains) ? 0 : 1;
 
 async Task<JsonObject> PostJson(string url, object body)
 {
@@ -150,3 +213,10 @@ async Task<JsonObject> PostJson(string url, object body)
 
 static void Step(string s) => Console.WriteLine($"\n== {s}");
 static string Short(string s) => s.Length <= 12 ? s : s[..12] + "…";
+
+static long ReadCreatedPlayer(byte[] data)
+{
+    var reader = new SchemaReader(data);
+    if (reader.ReadFieldId() != 1) throw new InvalidDataException("Missing created player ID");
+    return reader.ReadInt64();
+}

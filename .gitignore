@@ -4,3 +4,4 @@ server/ZenithServer/data/
 **/captures/
 **/certs/
 tools/il2cpp-analysis/out/
+client/

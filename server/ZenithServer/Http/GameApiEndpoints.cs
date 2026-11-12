@@ -28,7 +28,7 @@ public static class GameApiEndpoints
     private static string? Str(JsonObject o, string key) =>
         o.TryGetPropertyValue(key, out var v) && v is JsonValue jv && jv.TryGetValue<string>(out var s) ? s : v?.ToString();
 
-    private static IResult Ok(HttpContext ctx, object body)
+    internal static IResult Ok(HttpContext ctx, object body)
     {
         ctx.Items["zenith.handled"] = true;
         return Results.Json(body);
@@ -63,6 +63,7 @@ public static class GameApiEndpoints
                 authToken = s.AuthToken,
                 sessionID = s.SessionId,
                 playFabId = a.PlayFabId,
+                displayName = a.Username,
                 username = a.Username,
                 errorCode = 0,
                 message = "",
@@ -152,16 +153,32 @@ public static class GameApiEndpoints
         // Nexus / Noodle  (ReleaseConfiguration.AuthConfigURL = https://nexus.zenithmmo.com)
         // ------------------------------------------------------------------
 
+        app.MapMethods("/", ["GET", "HEAD"], (HttpContext ctx) =>
+        {
+            ctx.Items["zenith.handled"] = true;
+            return Results.Content("""
+                <!doctype html>
+                <html lang="en">
+                <head><meta charset="utf-8"><title>Zenith Community Server</title></head>
+                <body>
+                  <h1>Zenith Community Server</h1>
+                  <p><a href="/api/status">Service status</a> · <a href="/api/realm/list">Realms</a></p>
+                </body>
+                </html>
+                """, "text/html; charset=utf-8");
+        });
+
         // AuthClientSkywave.ServiceStatusData { message, loginEnabled }  (NoodleAuthConfig.serverNewsURL)
         app.MapGet("/api/status", (HttpContext ctx) => Ok(ctx, new { message = "", loginEnabled = true }));
 
         // Dictionary<string, DeploymentInfo | RealmListEntry>
         //   DeploymentInfo { id, name, region, status, load }  +  RealmListEntry { workerHost, workerPort }
-        app.MapMethods("/api/realm/list", ["GET", "POST"], (HttpContext ctx) =>
+        app.MapMethods("/api/realm/list/{shardTag?}", ["GET", "POST"], (HttpContext ctx, string? shardTag) =>
         {
             var dict = new Dictionary<string, object>();
             foreach (var r in opts.Realms)
             {
+                if (shardTag is not null && !r.Tags.Contains(shardTag, StringComparer.OrdinalIgnoreCase)) continue;
                 dict[r.Id] = new
                 {
                     id = r.Id,
@@ -171,6 +188,8 @@ public static class GameApiEndpoints
                     load = r.Load,
                     workerHost = r.WorkerHost ?? opts.PublicHost,
                     workerPort = r.WorkerPort ?? opts.ZenFabric.Port,
+                    tags = r.Tags,
+                    version = r.Version,
                 };
             }
             return Ok(ctx, dict);
@@ -182,7 +201,10 @@ public static class GameApiEndpoints
             var b = await ReadJson(ctx.Request);
             var playFabId = Str(b, "playFabId");
             var token = Str(b, "token") ?? ctx.Request.Headers.Authorization.ToString();
-            var s = store.Resolve(token, playFabId);
+            var s = store.Resolve(token, opts.Auth.AllowUnknownIdentityTokens ? playFabId : null);
+            if (s is not null && playFabId is not null &&
+                !string.Equals(s.PlayFabId, playFabId, StringComparison.OrdinalIgnoreCase))
+                return Results.Json(new { error = "session does not match account" }, statusCode: 401);
             if (s is null)
             {
                 if (!opts.Auth.AllowUnknownIdentityTokens)
@@ -202,6 +224,7 @@ public static class GameApiEndpoints
                 spatialLoginToken = s.JoinToken,
                 joinToken = s.JoinToken,
                 identityToken = s.IdentityToken,
+                token = s.IdentityToken,
             });
         });
 

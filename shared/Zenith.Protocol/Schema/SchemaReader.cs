@@ -26,7 +26,7 @@ public ref struct SchemaReader
 
     private ReadOnlySpan<byte> Take(int n)
     {
-        if (n < 0 || _pos + n > _data.Length)
+        if (n < 0 || n > Remaining)
             throw new SchemaFormatException($"Read error: need {n} bytes at position {_pos}, available {_data.Length - _pos}");
         var s = _data.Slice(_pos, n);
         _pos += n;

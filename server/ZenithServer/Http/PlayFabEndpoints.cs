@@ -158,10 +158,32 @@ public static class PlayFabEndpoints
                 ctx.Items["zenith.handled"] = true;
                 data = h(ctx, body, session, account);
                 if (data is null)
-                    return Results.Json(new { code = 401, status = "Unauthorized", error = "NotAuthenticated", errorCode = 1074, errorMessage = "Session not found" }, statusCode: 401);
+                    return Error(401, "Unauthorized", "NotAuthenticated", 1074, "Session not found");
             }
             return Results.Json(new { code = 200, status = "OK", data });
         }
+
+        app.MapPost("/Client/ReportPlayer", async (HttpContext ctx) =>
+        {
+            ctx.Items["zenith.handled"] = true;
+            var session = store.BySessionTicket(ctx.Request.Headers["X-Authorization"].FirstOrDefault());
+            if (session is null || store.FindById(session.PlayFabId) is not { } reporter)
+                return Error(401, "Unauthorized", "NotAuthenticated", 1074, "Session not found");
+
+            var body = await GameApiEndpoints.ReadJson(ctx.Request);
+            if (body["ReporteeId"] is not JsonValue reporteeValue ||
+                !reporteeValue.TryGetValue<string>(out var reporteeId) || string.IsNullOrWhiteSpace(reporteeId) ||
+                store.FindById(reporteeId) is not { } reportee || reportee == reporter)
+                return Error(400, "BadRequest", "InvalidParams", 1000, "ReporteeId must identify another local player");
+
+            string? comment = null;
+            if (body["Comment"] is { } value &&
+                (value is not JsonValue text || !text.TryGetValue<string>(out comment)))
+                return Error(400, "BadRequest", "InvalidParams", 1000, "Comment must be a string");
+
+            var (updated, remaining) = store.ReportPlayer(reporter, reportee, comment);
+            return Results.Json(new { code = 200, status = "OK", data = new { Updated = updated, SubmissionsRemaining = remaining } });
+        });
 
         foreach (var api in new[] { "Client", "Server", "Authentication", "Event", "CloudScript", "Profile", "Group", "Data", "Economy", "Inventory", "Catalog", "Multiplayer", "Experimentation", "Insights", "Progression" })
         {
@@ -169,4 +191,7 @@ public static class PlayFabEndpoints
             app.MapPost($"/{a}/{{call}}", (HttpContext ctx, string call) => Handle(ctx, a, call));
         }
     }
+
+    private static IResult Error(int code, string status, string error, int errorCode, string errorMessage) =>
+        Results.Json(new { code, status, error, errorCode, errorMessage }, statusCode: code);
 }

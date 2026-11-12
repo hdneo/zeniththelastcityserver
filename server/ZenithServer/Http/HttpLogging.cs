@@ -26,8 +26,10 @@ public sealed class HttpLogging
     {
         var req = ctx.Request;
         req.EnableBuffering();
+        var logRequestBody = _bodies &&
+            !string.Equals(req.Path.Value?.TrimEnd('/'), "/Client/ReportPlayer", StringComparison.OrdinalIgnoreCase);
         string reqBody = "";
-        if (_bodies && (req.ContentLength ?? 0) > 0)
+        if (logRequestBody && (req.ContentLength ?? 0) > 0)
         {
             using var sr = new StreamReader(req.Body, Encoding.UTF8, leaveOpen: true);
             reqBody = await sr.ReadToEndAsync();
@@ -60,7 +62,7 @@ public sealed class HttpLogging
                 query = req.QueryString.Value,
                 handled,
                 requestHeaders = req.Headers.Where(h => h.Key is not ("Cookie")).ToDictionary(h => h.Key, h => h.Value.ToString()),
-                requestBody = _bodies ? Truncate(reqBody) : null,
+                requestBody = logRequestBody ? Truncate(reqBody) : null,
                 status = ctx.Response.StatusCode,
                 responseBody = _bodies ? Truncate(Encoding.UTF8.GetString(respBytes)) : null,
             };

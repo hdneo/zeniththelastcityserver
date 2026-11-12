@@ -1,0 +1,1165 @@
+[
+  {
+    "number": 2,
+    "prefab": "09564d7cc0469a14d975d89a8cf48ab3",
+    "spawn": [163.548, 7.88, -0.697],
+    "exit": [126.714, 4.243, 0.297],
+    "threshold": {
+      "id": "0ed3779e-0ec4-432b-8bf9-c95849409f43",
+      "position": [560.1944, 101.6803, 87.941]
+    },
+    "islands": [
+      {
+        "center": [388.776, 29.2, 38.0666],
+        "radius": 32,
+        "anchor": {
+          "id": "4704e11e-6883-4865-b03f-5e05f2a5b4c8",
+          "position": [388.776, 25.2004, 38.0666]
+        },
+        "checkpoint": [379.5113, 32.9404, 38.6002],
+        "miniboss": [389.6142, 29.2004, 28.9813],
+        "waves": [
+          {
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Gunner",
+                "position": [391.5708, 30.2078, 53.0255]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Brute",
+                "position": [393.0446, 29.2004, 38.1636]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [388.6427, 29.9424, 24.4619]
+              }
+            ]
+          },
+          {
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Gunner",
+                "position": [376.857, 29.2004, 33.3842],
+                "approach": [391.84, 29.2, 39.68]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Gunner",
+                "position": [376.5582, 29.2004, 41.9355],
+                "approach": [387.5, 29.2, 35.08]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [400.452, 29.2004, 34.9902],
+                "approach": [392.69, 29.2, 36.09]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [400.6868, 29.2004, 39.0738],
+                "approach": [391.64, 29.2, 38.69]
+              }
+            ],
+            "replacements": 6,
+            "startEvent": "TurnOnPortals&Spawns"
+          }
+        ],
+        "clearEvent": "LootChest_Minor"
+      },
+      {
+        "center": [398.5622, 43, 150.562],
+        "radius": 32,
+        "anchor": {
+          "id": "f1b1b30f-3083-469f-9b7e-105ac7fa8219",
+          "position": [398.5622, 39.0003, 150.562]
+        },
+        "checkpoint": [394.964, 46.7403, 159.116],
+        "miniboss": [390.7729, 43.0003, 145.8109],
+        "waves": [
+          {
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Gunner",
+                "position": [413.2245, 44.0077, 154.6358]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Brute",
+                "position": [400.5279, 43.0003, 146.7717]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [386.2872, 43.7424, 144.6943]
+              }
+            ]
+          },
+          {
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Gunner",
+                "position": [389.1121, 43.0003, 159.2039],
+                "approach": [401.36, 43, 148.53]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Gunner",
+                "position": [396.6593, 43.0003, 163.2356],
+                "approach": [395.32, 43, 150.39]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [400.9383, 43.0003, 138.7236],
+                "approach": [398.51, 43, 146.18]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [404.7085, 43.0003, 140.3099],
+                "approach": [400.38, 43, 148.26]
+              }
+            ],
+            "replacements": 6,
+            "startEvent": "TurnOnPortals&Spawns"
+          }
+        ],
+        "clearEvent": "LootChest_Minor"
+      }
+    ]
+  },
+  {
+    "number": 4,
+    "prefab": "22779e6a6e2a51447896acf6533db628",
+    "spawn": [164.0478, 6.0604, -3.4968],
+    "exit": [127.2138, 4.8427, -2.5028],
+    "threshold": {
+      "id": "0ed3779e-0ec4-432b-8bf9-c95849409f43",
+      "position": [374.9941, 52.4603, -108.4709]
+    },
+    "islands": [
+      {
+        "center": [247.2774, 34.02, -122.2814],
+        "radius": 32,
+        "anchor": {
+          "id": "1527494c-00fa-4005-8594-fe3fe3fa942a",
+          "position": [247.2774, 29.8004, -122.2814]
+        },
+        "checkpoint": [239.0457, 37.5404, -117.9969],
+        "miniboss": [239.5112, 35.9804, -135.6547],
+        "navigationId": "daily-4-1",
+        "waves": [
+          {
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Gunner",
+                "position": [252.6429, 33.8004, -125.9667]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [243.4532, 35.4244, -134.3852]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [240.4515, 34.061, -118.7469]
+              }
+            ]
+          },
+          {
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Gunner",
+                "position": [259.2296, 34.9805, -110.104],
+                "approach": [252.5, 35.04, -115.0]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Gunner",
+                "position": [249.6044, 34.932, -105.6809],
+                "approach": [248.5, 34.48, -114.0]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [257.1472, 35.0562, -108.8132],
+                "approach": [252.0, 34.8, -115.0]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [252.8122, 35.1056, -106.189],
+                "approach": [250.0, 34.58, -114.0]
+              }
+            ],
+            "replacements": 6,
+            "startEvent": "TurnOnPortals&Spawns"
+          }
+        ],
+        "clearEvent": "LootChest_Minor"
+      }
+    ]
+  },
+  {
+    "number": 5,
+    "prefab": "ac1077e48ed37c949b5b88d84c316492",
+    "spawn": [164.0478, 6.0604, -3.4968],
+    "exit": [127.2138, 4.8427, -2.5028],
+    "threshold": {
+      "id": "0ed3779e-0ec4-432b-8bf9-c95849409f43",
+      "position": [773.7342, 78.6184, -334.5993]
+    },
+    "islands": [
+      {
+        "center": [276.437, 6.43, -16.3358],
+        "radius": 33,
+        "anchor": {
+          "id": "1527494c-00fa-4005-8594-fe3fe3fa942a",
+          "position": [276.437, 3.3604, -16.3358]
+        },
+        "checkpoint": [279.4707, 7.9904, -0.2466],
+        "miniboss": [282.7137, 6.3604, -11.5949],
+        "navigationId": "daily-5-1",
+        "waves": [
+          {
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Gunner",
+                "position": [277.2147, 6.3604, -19.8814]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [260.3068, 7.1004, -33.3884]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [282.2184, 5.6104, -4.6973]
+              }
+            ]
+          },
+          {
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Gunner",
+                "position": [255.4404, 7.1004, -30.5631],
+                "approach": [266.0, 7.2, -23.5]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Gunner",
+                "position": [254.9926, 7.1004, -31.212],
+                "approach": [265.5, 7.21, -24.0]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [285.9779, 6.3604, -14.8891],
+                "approach": [281.0, 6.44, -15.5]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [280.4195, 6.3604, -24.7164],
+                "approach": [278.5, 6.43, -20.5]
+              }
+            ],
+            "replacements": 6,
+            "startEvent": "TurnOnPortals&Spawns"
+          }
+        ],
+        "clearEvent": "LootChest_Minor"
+      },
+      {
+        "center": [660.205, 60.31, -268.2776],
+        "radius": 48,
+        "anchor": {
+          "id": "211e9cd2-32ea-4bcd-ac37-1b16df35fe88",
+          "position": [660.205, 55.8303, -268.2776]
+        },
+        "checkpoint": [682.1036, 63.5703, -266.0645],
+        "navigationId": "daily-5-2",
+        "waves": [
+          {
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [659.1254, 59.8813, -276.138]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [686.796, 59.9414, -290.8319]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Gunner",
+                "position": [685.7475, 59.7993, -272.2735]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Sniper",
+                "position": [695.4133, 64.7926, -266.5288]
+              }
+            ]
+          },
+          {
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Gunner",
+                "position": [674.9385, 59.7765, -300.2233],
+                "approach": [667.5, 60.08, -284.0]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Gunner",
+                "position": [702.0317, 64.7926, -268.3878],
+                "approach": [681.0, 59.88, -268.0]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Sniper",
+                "position": [674.2872, 66.5177, -305.9801]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Gunner",
+                "position": [691.8927, 59.8379, -268.4619],
+                "approach": [676.0, 59.97, -268.5]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [661.8052, 59.9284, -289.157],
+                "approach": [661.0, 59.84, -278.5]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [690.874, 59.8408, -265.8445],
+                "approach": [675.5, 59.98, -267.0]
+              }
+            ],
+            "replacements": 4,
+            "startEvent": "TurnOnPortals&Spawns"
+          }
+        ],
+        "clearEvent": "LootChest_Minor"
+      }
+    ]
+  },
+  {
+    "number": 9,
+    "prefab": "bc2272ec53bab16418018281029bc2a7",
+    "spawn": [165.03, 5.8, -1.15],
+    "exit": [126.7699, 13.7, -0.0852],
+    "threshold": {
+      "id": "0ed3779e-0ec4-432b-8bf9-c95849409f43",
+      "position": [627.9555, 92.0782, -232.1917]
+    },
+    "islands": [
+      {
+        "center": [454.7723, 62.29, -189.7956],
+        "radius": 48,
+        "anchor": {
+          "id": "1527494c-00fa-4005-8594-fe3fe3fa942a",
+          "position": [454.7723, 57.7901, -189.7956]
+        },
+        "checkpoint": [473.964, 65.5301, -179.0193],
+        "navigationId": "daily-9-1",
+        "waves": [
+          {
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [456.9224, 61.8411, -197.4329]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [488.1591, 61.9012, -199.8506]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Gunner",
+                "position": [479.7847, 61.7591, -183.2559]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Sniper",
+                "position": [486.3511, 66.7523, -174.1284]
+              }
+            ]
+          },
+          {
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Gunner",
+                "position": [481.04, 61.7363, -213.1967],
+                "approach": [468.0, 62.04, -201.5]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Gunner",
+                "position": [493.1611, 66.7523, -173.189],
+                "approach": [474.5, 61.88, -181.5]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Sniper",
+                "position": [482.7426, 68.4775, -218.7344]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Gunner",
+                "position": [483.8958, 61.7977, -177.3069],
+                "approach": [469.5, 61.92, -183.5]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [464.5795, 61.8881, -208.2977],
+                "approach": [459.5, 61.79, -199.0]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [481.9164, 61.8005, -175.3143],
+                "approach": [468.5, 61.94, -182.5]
+              }
+            ],
+            "replacements": 4,
+            "startEvent": "TurnOnPortals&Spawns"
+          }
+        ],
+        "clearEvent": "LootChest_Minor"
+      }
+    ]
+  },
+  {
+    "number": 14,
+    "prefab": "f49a73445471b9d4c894e0959a8d4825",
+    "spawn": [156.8, 5.8, -1.15],
+    "exit": [127.5804, 13.7, -0.172],
+    "threshold": {
+      "id": "0ed3779e-0ec4-432b-8bf9-c95849409f43",
+      "position": [590.3387, 80.5119, -200.419]
+    },
+    "islands": [
+      {
+        "center": [207.9767, 6.2, -1.86],
+        "radius": 48,
+        "anchor": {
+          "id": "1527494c-00fa-4005-8594-fe3fe3fa942a",
+          "position": [207.9767, 1.7119, -1.86]
+        },
+        "checkpoint": [192.3004, 9.4519, -17.31],
+        "navigationId": "daily-14-1",
+        "waves": [
+          {
+            "spawns": [
+              {
+                "prefab": "EnemyBase-MeleeExiled-A-Reimagined",
+                "position": [203.8911, 5.7629, 4.9414]
+              },
+              {
+                "prefab": "EnemyBase-MeleeExiled-A-Reimagined",
+                "position": [173.1204, 5.823, -0.9524]
+              },
+              {
+                "prefab": "EnemyBase-RangedExiled-Reimagined",
+                "position": [185.5695, 5.7519, -14.7559]
+              },
+              {
+                "prefab": "EnemyBase-ExiledGrenadier-Reimagined",
+                "position": [181.6385, 10.6741, -25.2904]
+              }
+            ]
+          },
+          {
+            "spawns": [
+              {
+                "prefab": "EnemyBase-RangedExiled-Reimagined",
+                "position": [176.4735, 5.6581, 13.7974],
+                "approach": [192.0, 5.97, 6.0]
+              },
+              {
+                "prefab": "EnemyBase-RangedExiled-Reimagined",
+                "position": [175.3163, 10.6741, -27.9902],
+                "approach": [191.0, 5.84, -15.0]
+              },
+              {
+                "prefab": "EnemyBase-ExiledGrenadier-Reimagined",
+                "position": [173.3727, 12.3993, 18.6913],
+                "approach": [191.0, 5.95, 8.5]
+              },
+              {
+                "prefab": "EnemyBase-RangedExiled-Reimagined",
+                "position": [183.1702, 5.7195, -21.5775],
+                "approach": [195.5, 5.85, -11.5]
+              },
+              {
+                "prefab": "EnemyBase-MeleeExiled-A-Reimagined",
+                "position": [193.6431, 5.8099, 13.4062],
+                "approach": [201.0, 5.71, 6.0]
+              },
+              {
+                "prefab": "EnemyBase-MeleeExiled-A-Reimagined",
+                "position": [185.6044, 5.7223, -22.9785],
+                "approach": [197.0, 5.86, -12.5]
+              }
+            ],
+            "replacements": 4,
+            "startEvent": "TurnOnPortals&Spawns"
+          }
+        ],
+        "clearEvent": "LootChest_Minor"
+      },
+      {
+        "center": [278.1032, 15.51, -12.9307],
+        "radius": 32,
+        "anchor": {
+          "id": "4704e11e-6883-4865-b03f-5e05f2a5b4c8",
+          "position": [278.1032, 11.3019, -12.9307]
+        },
+        "checkpoint": [272.2314, 19.0419, -5.7446],
+        "miniboss": [271.9768, 15.3019, -19.6919],
+        "navigationId": "daily-14-2",
+        "waves": [
+          {
+            "spawns": [
+              {
+                "prefab": "EnemyBase-RangedExiled-Reimagined",
+                "position": [291.0134, 16.8759, -4.8743]
+              },
+              {
+                "prefab": "EnemyBase-Ent-Forest-Reimagined",
+                "position": [281.0612, 15.6919, -16.0098]
+              },
+              {
+                "prefab": "EnemyBase-MeleeExiled-A-Reimagined",
+                "position": [267.9904, 17.0719, -22.0322]
+              }
+            ]
+          },
+          {
+            "spawns": [
+              {
+                "prefab": "EnemyBase-RangedExiled-Reimagined",
+                "position": [266.5939, 15.3019, -7.3163],
+                "approach": [272.5, 15.68, -10.0]
+              },
+              {
+                "prefab": "EnemyBase-RangedExiled-Reimagined",
+                "position": [272.6917, 15.3019, -1.3136],
+                "approach": [275.0, 15.54, -8.0]
+              },
+              {
+                "prefab": "EnemyBase-MeleeExiled-A-Reimagined",
+                "position": [283.7322, 15.6449, -23.6128],
+                "approach": [281.0, 15.71, -18.5]
+              },
+              {
+                "prefab": "EnemyBase-MeleeExiled-A-Reimagined",
+                "position": [286.8994, 15.7789, -21.0244],
+                "approach": [282.5, 15.78, -17.0]
+              }
+            ],
+            "replacements": 6,
+            "startEvent": "TurnOnPortals&Spawns"
+          }
+        ],
+        "clearEvent": "LootChest_Minor"
+      }
+    ]
+  },
+  {
+    "number": 16,
+    "prefab": "964e23d182cec1a4f9928ce9b6dcb8d0",
+    "spawn": [166.2702, 6.0604, -1.2105],
+    "exit": [128.385, 4.8426, -0.2829],
+    "threshold": {
+      "id": "0ed3779e-0ec4-432b-8bf9-c95849409f43",
+      "position": [362.8349, 49.3122, -464.9253]
+    },
+    "islands": [
+      {
+        "center": [252.3672, 16.24, 62.0593],
+        "radius": 32,
+        "anchor": {
+          "id": "1527494c-00fa-4005-8594-fe3fe3fa942a",
+          "position": [252.3672, 12.7904, 62.0593]
+        },
+        "checkpoint": [256.373, 16.7304, 61.8755],
+        "miniboss": [251.2986, 16.5104, 62.5761],
+        "navigationId": "daily-16-1",
+        "waves": [
+          {
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidGunner",
+                "position": [255.1565, 16.1044, 64.3823]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidMelee",
+                "position": [272.154, 17.2054, 57.4255]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidMelee",
+                "position": [239.3738, 15.1344, 61.8327]
+              }
+            ]
+          },
+          {
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidGunner",
+                "position": [273.8015, 16.6514, 50.8499],
+                "approach": [263.0, 17.2, 56.5]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidGunner",
+                "position": [271.9505, 16.7104, 48.0975],
+                "approach": [262.0, 17.24, 55.0]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidMelee",
+                "position": [247.4279, 15.9154, 70.2601],
+                "approach": [250.0, 16.24, 66.0]
+              },
+              {
+                "prefab": "EnemyBase-EssenceWolf-Reimagined",
+                "position": [256.8761, 15.7904, 69.7812],
+                "approach": [254.5, 16.24, 66.0]
+              }
+            ],
+            "replacements": 6,
+            "startEvent": "TurnOnPortals&Spawns"
+          }
+        ],
+        "clearEvent": "LootChest_Minor"
+      },
+      {
+        "center": [311.4662, 48.86, -383.2016],
+        "radius": 48,
+        "anchor": {
+          "id": "27b10651-4447-47f4-947e-e394bdca7910",
+          "position": [311.4662, 44.3622, -383.2016]
+        },
+        "checkpoint": [290.0454, 52.1022, -378.142],
+        "navigationId": "daily-16-2",
+        "waves": [
+          {
+            "spawns": [
+              {
+                "prefab": "EnemyBase-MeleeExiled-A-Reimagined",
+                "position": [315.0534, 48.4132, -376.1247]
+              },
+              {
+                "prefab": "EnemyBase-MeleeExiled-A-Reimagined",
+                "position": [293.6983, 48.4733, -353.2001]
+              },
+              {
+                "prefab": "EnemyBase-RangedExiled-Reimagined",
+                "position": [288.6289, 48.4022, -371.0836]
+              },
+              {
+                "prefab": "EnemyBase-ExiledGrenadier-Reimagined",
+                "position": [277.6171, 53.3245, -373.3567]
+              }
+            ]
+          },
+          {
+            "spawns": [
+              {
+                "prefab": "EnemyBase-RangedExiled-Reimagined",
+                "position": [307.9727, 48.3084, -348.1959],
+                "approach": [309.5, 48.61, -365.5]
+              },
+              {
+                "prefab": "EnemyBase-RangedExiled-Reimagined",
+                "position": [271.9686, 53.3245, -369.4383],
+                "approach": [292.0, 48.41, -376.5]
+              },
+              {
+                "prefab": "EnemyBase-ExiledGrenadier-Reimagined",
+                "position": [310.4682, 55.0496, -342.9673],
+                "approach": [311.0, 48.62, -363.5]
+              },
+              {
+                "prefab": "EnemyBase-RangedExiled-Reimagined",
+                "position": [281.5759, 48.3698, -372.6793],
+                "approach": [296.5, 48.51, -378.0]
+              },
+              {
+                "prefab": "EnemyBase-MeleeExiled-A-Reimagined",
+                "position": [316.7721, 48.4603, -362.9443],
+                "approach": [314.0, 48.36, -373.0]
+              },
+              {
+                "prefab": "EnemyBase-MeleeExiled-A-Reimagined",
+                "position": [281.6839, 48.3726, -375.4859],
+                "approach": [296.5, 48.51, -379.5]
+              }
+            ],
+            "replacements": 4,
+            "startEvent": "TurnOnPortals&Spawns"
+          }
+        ],
+        "clearEvent": "LootChest_Minor"
+      }
+    ]
+  },
+  {
+    "number": 18,
+    "prefab": "7618d8a9f8ebe9b4581c5a861d4f69de",
+    "spawn": [193.1988, 5.4604, -7.8558],
+    "exit": [127.2597, 4.2426, 0.1109],
+    "threshold": {
+      "id": "0ed3779e-0ec4-432b-8bf9-c95849409f43",
+      "position": [755.144, 84.5404, -181.1167]
+    },
+    "islands": [
+      {
+        "center": [182.1786, 5.11, -16.7004],
+        "radius": 32,
+        "anchor": {
+          "id": "1527494c-00fa-4005-8594-fe3fe3fa942a",
+          "position": [182.1786, 1.6404, -16.7004]
+        },
+        "checkpoint": [184.6563, 5.5804, -19.8534],
+        "miniboss": [181.8718, 5.3604, -15.5537],
+        "navigationId": "daily-18-1",
+        "waves": [
+          {
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidGunner",
+                "position": [185.7596, 4.9544, -17.2948]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidMelee",
+                "position": [191.5962, 6.0554, -34.7087]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidMelee",
+                "position": [173.519, 3.9844, -7.0107]
+              }
+            ]
+          },
+          {
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidGunner",
+                "position": [187.6939, 5.5014, -40.2517],
+                "approach": [185.0, 6.04, -28.5]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidGunner",
+                "position": [184.4008, 5.5604, -40.6483],
+                "approach": [183.5, 6.09, -28.5]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidMelee",
+                "position": [185.1611, 4.7654, -7.6035],
+                "approach": [183.5, 5.09, -12.0]
+              },
+              {
+                "prefab": "EnemyBase-EssenceWolf-Reimagined",
+                "position": [190.9706, 4.6404, -15.0698],
+                "approach": [186.5, 5.09, -16.0]
+              }
+            ],
+            "replacements": 6,
+            "startEvent": "TurnOnPortals&Spawns"
+          }
+        ],
+        "clearEvent": "LootChest_Minor"
+      },
+      {
+        "center": [254.7163, 28.29, -211.3524],
+        "radius": 32,
+        "anchor": {
+          "id": "4704e11e-6883-4865-b03f-5e05f2a5b4c8",
+          "position": [254.7163, 24.0804, -211.3524]
+        },
+        "checkpoint": [259.2433, 31.8205, -219.4533],
+        "miniboss": [261.929, 28.0805, -205.7646],
+        "navigationId": "daily-18-2",
+        "waves": [
+          {
+            "spawns": [
+              {
+                "prefab": "EnemyBase-RangedExiled-Reimagined",
+                "position": [240.5979, 29.6545, -217.0313]
+              },
+              {
+                "prefab": "EnemyBase-Ent-Forest-Reimagined",
+                "position": [252.3413, 28.4704, -207.8042]
+              },
+              {
+                "prefab": "EnemyBase-MeleeExiled-A-Reimagined",
+                "position": [266.2627, 29.8505, -204.1562]
+              }
+            ]
+          },
+          {
+            "spawns": [
+              {
+                "prefab": "EnemyBase-RangedExiled-Reimagined",
+                "position": [265.0687, 28.0805, -218.8899],
+                "approach": [260.0, 28.46, -215.0]
+              },
+              {
+                "prefab": "EnemyBase-RangedExiled-Reimagined",
+                "position": [258.0166, 28.0805, -223.7358],
+                "approach": [257.0, 28.43, -217.0]
+              },
+              {
+                "prefab": "EnemyBase-MeleeExiled-A-Reimagined",
+                "position": [251.0386, 28.4235, -199.8516],
+                "approach": [253.0, 28.49, -205.5]
+              },
+              {
+                "prefab": "EnemyBase-MeleeExiled-A-Reimagined",
+                "position": [247.4681, 28.5575, -201.8473],
+                "approach": [251.0, 28.56, -206.5]
+              }
+            ],
+            "replacements": 6,
+            "startEvent": "TurnOnPortals&Spawns"
+          }
+        ],
+        "clearEvent": "LootChest_Minor"
+      },
+      {
+        "center": [287.8997, 28.33, -121.2004],
+        "radius": 32,
+        "anchor": {
+          "id": "f38ff469-516e-499a-a18b-24a662d5fded",
+          "position": [287.8997, 24.0604, -121.2004]
+        },
+        "checkpoint": [297.9745, 28.5604, -120.4264],
+        "navigationId": "daily-18-3",
+        "waves": [
+          {
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [298.0349, 28.1115, -126.8206]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Gunner",
+                "position": [278.2391, 28.1121, -122.0427]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [297.5987, 28.0504, -115.6287]
+              }
+            ]
+          },
+          {
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Gunner",
+                "position": [277.5504, 28.1094, -117.4124],
+                "approach": [282.0, 28.24, -118.5]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Gunner",
+                "position": [277.8523, 28.1066, -126.3881],
+                "approach": [282.0, 28.2, -124.0]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [294.4938, 28.1187, -117.816],
+                "approach": [291.0, 27.63, -119.5]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [294.6984, 28.119, -123.9942],
+                "approach": [291.0, 27.63, -122.5]
+              }
+            ],
+            "replacements": 6,
+            "startEvent": "TurnOnPortals&Spawns"
+          }
+        ],
+        "clearEvent": "LootChest_Minor"
+      }
+    ]
+  },
+  {
+    "number": 21,
+    "prefab": "3b81fe8579b240a44ad6e5eb4e2487ac",
+    "spawn": [164.0478, 6.0604, 26.9032],
+    "exit": [127.2138, 4.8427, 0.2],
+    "threshold": {
+      "id": "0ed3779e-0ec4-432b-8bf9-c95849409f43",
+      "position": [478.2006, 37.1446, 11.9839]
+    },
+    "islands": [
+      {
+        "center": [181.6841, 5.31, 1.8544],
+        "radius": 33,
+        "anchor": {
+          "id": "1527494c-00fa-4005-8594-fe3fe3fa942a",
+          "position": [181.6841, 2.2404, 1.8544]
+        },
+        "checkpoint": [173.2759, 6.8704, 15.9031],
+        "miniboss": [183.2331, 5.2404, 9.5663],
+        "navigationId": "daily-21-1",
+        "waves": [
+          {
+            "spawns": [
+              {
+                "prefab": "EnemyBase-PirateBandit-Reimagined-Gunner",
+                "position": [184.619, 5.2404, -0.2817]
+              },
+              {
+                "prefab": "EnemyBase-PirateBandit-Reimagined-Melee",
+                "position": [180.9353, 5.9804, -21.6065]
+              },
+              {
+                "prefab": "EnemyBase-PirateBandit-Reimagined-Melee",
+                "position": [178.2849, 4.4904, 14.3973]
+              }
+            ]
+          },
+          {
+            "spawns": [
+              {
+                "prefab": "EnemyBase-PirateBandit-Reimagined-Gunner",
+                "position": [175.4201, 5.9804, -22.7227],
+                "approach": [178.5, 6.09, -10.5]
+              },
+              {
+                "prefab": "EnemyBase-PirateBandit-Reimagined-Gunner",
+                "position": [175.5157, 5.9804, -23.5053],
+                "approach": [178.5, 6.09, -11.0]
+              },
+              {
+                "prefab": "EnemyBase-PirateBandit-Reimagined-Melee",
+                "position": [187.8611, 5.2404, 9.2685],
+                "approach": [185.0, 5.32, 5.5]
+              },
+              {
+                "prefab": "EnemyBase-PirateBandit-Reimagined-Melee",
+                "position": [190.2251, 5.2404, -1.7716],
+                "approach": [186.0, 5.31, 0.0]
+              }
+            ],
+            "replacements": 6,
+            "startEvent": "TurnOnPortals&Spawns"
+          }
+        ],
+        "clearEvent": "LootChest_Minor"
+      },
+      {
+        "center": [339.9512, 18.4, 37.9135],
+        "radius": 32,
+        "anchor": {
+          "id": "0d34a406-606f-425d-b04d-f5b0fa30c2f4",
+          "position": [339.9512, 13.7645, 37.9135]
+        },
+        "checkpoint": [341.4984, 18.1615, 37.3791],
+        "miniboss": [344.4164, 14.9925, 41.4458],
+        "navigationId": "daily-21-2",
+        "waves": [
+          {
+            "spawns": [
+              {
+                "prefab": "EnemyBase-PirateBandit-Reimagined-Gunner",
+                "position": [336.5026, 14.7275, 31.718]
+              },
+              {
+                "prefab": "EnemyBase-PirateBandit-Reimagined-Melee",
+                "position": [331.3459, 18.0784, 55.0832]
+              },
+              {
+                "prefab": "EnemyBase-PirateBandit-Reimagined-Melee",
+                "position": [355.7857, 18.0606, 26.7121]
+              }
+            ]
+          },
+          {
+            "spawns": [
+              {
+                "prefab": "EnemyBase-PirateBandit-Reimagined-Gunner",
+                "position": [323.4282, 18.2004, 54.3745],
+                "approach": [331.5, 18.24, 46.0]
+              },
+              {
+                "prefab": "EnemyBase-PirateBandit-Reimagined-Gunner",
+                "position": [332.1916, 18.1644, 62.3813],
+                "approach": [336.0, 18.29, 50.0]
+              },
+              {
+                "prefab": "EnemyBase-PirateBandit-Reimagined-Melee",
+                "position": [346.0281, 14.6695, 43.1655],
+                "approach": [343.0, 14.78, 40.5]
+              },
+              {
+                "prefab": "EnemyBase-PirateBandit-Reimagined-Melee",
+                "position": [329.4346, 16.4945, 39.702],
+                "approach": [334.0, 16.27, 39.0]
+              }
+            ],
+            "replacements": 6,
+            "startEvent": "TurnOnPortals&Spawns"
+          }
+        ],
+        "clearEvent": "LootChest_Minor"
+      }
+    ]
+  },
+  {
+    "number": 22,
+    "prefab": "021557ba25c35e74cab1e7acde04198e",
+    "spawn": [171.9, 5.8, 21.4555],
+    "exit": [127.4202, 13.7, -0.1178],
+    "threshold": {
+      "id": "0ed3779e-0ec4-432b-8bf9-c95849409f43",
+      "position": [357.5576, 22.855, -8.1569]
+    },
+    "islands": [
+      {
+        "center": [181.3461, 4.28, -0.3848],
+        "radius": 32,
+        "anchor": {
+          "id": "4704e11e-6883-4865-b03f-5e05f2a5b4c8",
+          "position": [181.3461, -0.46, -0.3848]
+        },
+        "checkpoint": [189.9391, 7.28, 3.1194],
+        "miniboss": [176.6807, 3.54, 7.4562],
+        "navigationId": "daily-22-1",
+        "waves": [
+          {
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Gunner",
+                "position": [185.2589, 4.5474, -15.0909]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Brute",
+                "position": [177.5345, 3.54, -2.3088]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [175.6135, 4.282, 11.9538]
+              }
+            ]
+          },
+          {
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Gunner",
+                "position": [190.0912, 3.54, 8.97],
+                "approach": [185.5, 3.55, 4.5]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Gunner",
+                "position": [194.0399, 3.54, 1.379],
+                "approach": [187.5, 3.56, 0.5]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [169.4824, 3.54, -2.6309],
+                "approach": [175.5, 3.55, -1.5]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [171.0273, 3.54, -6.4183],
+                "approach": [176.0, 3.55, -3.5]
+              }
+            ],
+            "replacements": 6,
+            "startEvent": "TurnOnPortals&Spawns"
+          }
+        ],
+        "clearEvent": "LootChest_Minor"
+      },
+      {
+        "center": [231.6812, 13.18, 49.6491],
+        "radius": 32,
+        "anchor": {
+          "id": "f6a01c0e-b52c-40c9-a355-958b8bef4bee",
+          "position": [231.6812, 8.97, 49.6491]
+        },
+        "checkpoint": [234.5404, 16.71, 58.4776],
+        "miniboss": [222.6792, 12.97, 51.1357],
+        "navigationId": "daily-22-2",
+        "waves": [
+          {
+            "spawns": [
+              {
+                "prefab": "EnemyBase-RangedExiled-Reimagined",
+                "position": [245.447, 14.544, 43.1621]
+              },
+              {
+                "prefab": "EnemyBase-Ent-Forest-Reimagined",
+                "position": [230.6956, 13.36, 45.4947]
+              },
+              {
+                "prefab": "EnemyBase-MeleeExiled-A-Reimagined",
+                "position": [218.5525, 14.74, 53.2186]
+              }
+            ]
+          },
+          {
+            "spawns": [
+              {
+                "prefab": "EnemyBase-RangedExiled-Reimagined",
+                "position": [230.1653, 12.97, 62.3647],
+                "approach": [231.0, 13.35, 56.0]
+              },
+              {
+                "prefab": "EnemyBase-RangedExiled-Reimagined",
+                "position": [238.5142, 12.97, 60.4912],
+                "approach": [234.0, 13.23, 55.0]
+              },
+              {
+                "prefab": "EnemyBase-MeleeExiled-A-Reimagined",
+                "position": [225.752, 13.313, 39.1307],
+                "approach": [228.5, 13.37, 44.5]
+              },
+              {
+                "prefab": "EnemyBase-MeleeExiled-A-Reimagined",
+                "position": [229.6434, 13.447, 37.8707],
+                "approach": [230.5, 13.45, 44.0]
+              }
+            ],
+            "replacements": 6,
+            "startEvent": "TurnOnPortals&Spawns"
+          }
+        ],
+        "clearEvent": "LootChest_Minor"
+      },
+      {
+        "center": [268.5991, 22.31, -25.1548],
+        "radius": 32,
+        "anchor": {
+          "id": "1527494c-00fa-4005-8594-fe3fe3fa942a",
+          "position": [268.5991, 17.68, -25.1548]
+        },
+        "checkpoint": [267.988, 22.077, -23.6363],
+        "miniboss": [263.0042, 18.908, -24.1003],
+        "navigationId": "daily-22-3",
+        "waves": [
+          {
+            "spawns": [
+              {
+                "prefab": "EnemyBase-PirateBandit-Reimagined-Gunner",
+                "position": [275.5379, 18.643, -23.6955]
+              },
+              {
+                "prefab": "EnemyBase-PirateBandit-Reimagined-Melee",
+                "position": [261.28, 21.994, -42.911]
+              },
+              {
+                "prefab": "EnemyBase-PirateBandit-Reimagined-Melee",
+                "position": [266.6717, 21.976, -5.8549]
+              }
+            ]
+          },
+          {
+            "spawns": [
+              {
+                "prefab": "EnemyBase-PirateBandit-Reimagined-Gunner",
+                "position": [267.0074, 22.116, -48.4237],
+                "approach": [268.0, 22.16, -37.0]
+              },
+              {
+                "prefab": "EnemyBase-PirateBandit-Reimagined-Gunner",
+                "position": [255.2158, 22.08, -47.0585],
+                "approach": [262.0, 22.19, -36.0]
+              },
+              {
+                "prefab": "EnemyBase-PirateBandit-Reimagined-Melee",
+                "position": [260.649, 18.585, -24.0112],
+                "approach": [264.5, 18.7, -24.5]
+              },
+              {
+                "prefab": "EnemyBase-PirateBandit-Reimagined-Melee",
+                "position": [274.1455, 20.41, -34.2672],
+                "approach": [271.5, 20.19, -30.5]
+              }
+            ],
+            "replacements": 6,
+            "startEvent": "TurnOnPortals&Spawns"
+          }
+        ],
+        "clearEvent": "LootChest_Minor"
+      }
+    ]
+  }
+]

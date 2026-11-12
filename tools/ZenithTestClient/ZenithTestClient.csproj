@@ -14,6 +14,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\shared\Zenith.Protocol\Zenith.Protocol.csproj" />
+    <Content Include="..\..\server\ZenithServer\ClientData\daily_layouts.json" Link="daily_layouts.json"
+             CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

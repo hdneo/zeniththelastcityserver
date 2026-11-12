@@ -94,20 +94,25 @@ public static class StandardComponents
         return result;
     }
 
-    /// <summary>Improbable.Gdk.PlayerLifecycle.OwningWorker (13003): 1 string worker_id</summary>
-    public static byte[] OwningWorker(string workerId)
+    /// <summary>Improbable.Gdk.PlayerLifecycle.OwningWorker (13003): 1 EntityId worker_entity_id</summary>
+    public static byte[] OwningWorker(long workerEntityId)
     {
         var w = new SchemaWriter();
-        w.AddString(1, workerId);
+        w.AddEntityId(1, workerEntityId);
         return w.ToArray();
     }
 
-    /// <summary>Improbable.Restricted.Worker (60): 1 string worker_id, 2 string worker_type, 3 Connection (leer gelassen)</summary>
+    /// <summary>Improbable.Restricted.Worker (60): worker identity and connection state.</summary>
     public static byte[] Worker(string workerId, string workerType)
     {
         var w = new SchemaWriter();
         w.AddString(1, workerId);
         w.AddString(2, workerType);
+        w.AddObject(3, connection =>
+        {
+            connection.AddUInt64(1, 0);
+            connection.AddString(2, null);
+        });
         return w.ToArray();
     }
 
