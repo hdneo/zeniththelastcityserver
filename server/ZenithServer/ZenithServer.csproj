@@ -20,6 +20,8 @@
   <ItemGroup>
     <None Update="data\**\*" CopyToOutputDirectory="PreserveNewest" />
     <Content Update="ClientData\*.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\docs\data\item_catalog-56557.json" Link="ClientData\item_catalog-56557.json"
+             CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

@@ -16,15 +16,16 @@ using Zenith.Protocol.ZenFabric;
 //    5. EntityQuery(PlayerCreator) -> CommandRequest PlayerCreator.CreatePlayer
 //
 //  Usage:
-//    dotnet run --project tools/ZenithTestClient -- [--nexus URL] [--skywave URL] [--user ID] [--seconds N] [--character NAME [--spawn|--challenges|--shop]] [--insecure]
+//    dotnet run --project tools/ZenithTestClient -- [--nexus URL] [--skywave URL] [--user ID] [--seconds N] [--character NAME [--spawn|--challenges|--revive|--shop]] [--insecure]
 //  Default: http://127.0.0.1 for both.
 // =====================================================================================
 
 string nexus = "http://127.0.0.1", skywave = "", user = "testclient-" + Environment.MachineName;
-var seconds = 10;
+int? seconds = null;
 var insecure = false;
 var spawn = false;
 var challenges = false;
+var revive = false;
 var shop = false;
 string? characterName = null;
 for (var i = 0; i < args.Length; i++)
@@ -38,13 +39,14 @@ for (var i = 0; i < args.Length; i++)
         case "--character": characterName = args[++i]; break;
         case "--spawn": spawn = true; break;
         case "--challenges": spawn = challenges = true; break;
+        case "--revive": spawn = challenges = revive = true; break;
         case "--shop": spawn = challenges = shop = true; break;
         case "--insecure": insecure = true; break;
     }
 }
 if (spawn && characterName is null)
 {
-    Console.Error.WriteLine("--spawn, --challenges, and --shop require --character NAME");
+    Console.Error.WriteLine("--spawn, --challenges, --revive, and --shop require --character NAME");
     return 2;
 }
 if (skywave == "") skywave = nexus + "/api/game";
@@ -85,6 +87,7 @@ byte[]? key = null;
 var reqId = 1L;
 long playerCreator = 0;
 long playerEntity = 0;
+long workerEntity = 0;
 var done = false;
 var ok = new HashSet<string>();
 var listener = new EventBasedNetListener();
@@ -129,7 +132,8 @@ listener.NetworkReceiveEvent += (peer, reader, ch, dm) =>
             Send(peer, new AuthWorkerOp { IdentityToken = identityToken, SymmetricKeyParts = ZfCodec.EncryptSymmetricKey(newKey, ps.Modulus, ps.Exponent) });
             key = newKey; // encrypted from now on (like Connection.OnNetworkReceive in the client)
             break;
-        case InitWorkerOp:
+        case InitWorkerOp initialized:
+            workerEntity = initialized.WorkerEntityId;
             ok.Add("InitWorker");
             Send(peer, new PingOp { RequestId = reqId++ });
             // QueryConstraint with component_constraint = PlayerCreator (13000)
@@ -166,7 +170,8 @@ listener.NetworkReceiveEvent += (peer, reader, ch, dm) =>
                 ok.Add("CharacterRoster");
                 if (spawn)
                 {
-                    spawnScenario = new SpawnScenario(playFabId, sessionTicket, characterCommands.CharacterId!, characterName!, playerEntity, challenges, shop);
+                    spawnScenario = new SpawnScenario(playFabId, sessionTicket, characterCommands.CharacterId!, characterName!,
+                        playerEntity, workerEntity, challenges, shop, revive);
                     Send(peer, spawnScenario.Start(reqId++));
                 }
                 else done = true;
@@ -177,10 +182,15 @@ listener.NetworkReceiveEvent += (peer, reader, ch, dm) =>
 
 net.Start();
 net.Connect(host, port, joinToken);
-var until = DateTime.UtcNow.AddSeconds(seconds);
+var until = DateTime.UtcNow.AddSeconds(seconds ?? (revive ? 90 : challenges ? 240 : 10));
 while (!done && DateTime.UtcNow < until)
 {
     net.PollEvents();
+    if (!done && net.FirstPeer is { } activePeer && spawnScenario?.PollEncounter(reqId) is { } encounterOp)
+    {
+        reqId++;
+        Send(activePeer, encounterOp);
+    }
     Thread.Sleep(5);
 }
 net.Stop();

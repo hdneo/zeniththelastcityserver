@@ -6,9 +6,13 @@ internal sealed class ShopScenario
 {
     private const uint Wallet = 5001;
     private const uint Inventory = 1015;
+    private const uint Equipment = 1016;
+    private const int FeetCosmeticSlot = 22;
     private const string Cosmetic = "armor_feet_shin_cosmetic";
     private const int Price = 650;
-    private readonly HashSet<string> _items = new(StringComparer.Ordinal);
+    private readonly Dictionary<int, string> _items = new();
+    private bool _cosmeticEquipped;
+    private long _inventoryOwner;
     private long _balance;
     private long _initialBalance;
     private bool _initiallyOwned;
@@ -21,7 +25,7 @@ internal sealed class ShopScenario
     public CommandRequestOp Start(long request, long character)
     {
         _initialBalance = _balance;
-        _initiallyOwned = _items.Contains(Cosmetic);
+        _initiallyOwned = _items.ContainsValue(Cosmetic) || _cosmeticEquipped;
         var data = new SchemaWriter();
         data.AddInt32(1, 0); // Steam
         data.AddString(2, "local-test");
@@ -40,6 +44,7 @@ internal sealed class ShopScenario
                 _balance = ReadBalance(ref initial);
                 break;
             case AddComponentOp { Data.ComponentId: Inventory } inventory:
+                _inventoryOwner = inventory.EntityId;
                 var snapshot = new SchemaReader(inventory.Data.Data);
                 for (uint field = 1; field <= 8; field++)
                 {
@@ -47,6 +52,7 @@ internal sealed class ShopScenario
                     var count = snapshot.ReadListCount();
                     for (var i = 0; i < count; i++) snapshot.ReadBytesSpan();
                 }
+                Require(snapshot.ReadFieldId() == 9);
                 RecordItems(ref snapshot);
                 break;
             case ComponentUpdateOp { ComponentId: Wallet } wallet when wallet.EntityId == character:
@@ -55,7 +61,21 @@ internal sealed class ShopScenario
                 break;
             case ComponentUpdateOp { ComponentId: Inventory } inventory when inventory.EntityId == character:
                 var changes = new SchemaReader(inventory.Data);
-                RecordItems(ref changes);
+                while (changes.HasMore)
+                {
+                    switch (changes.ReadFieldId())
+                    {
+                        case 5: changes.ReadObjectList(); break;
+                        case 9: RecordItems(ref changes); break;
+                        default: throw new InvalidDataException("Unexpected inventory change");
+                    }
+                }
+                break;
+            case AddComponentOp { Data.ComponentId: Equipment } equipment when equipment.EntityId == _inventoryOwner:
+                ReadEquipment(equipment.Data.Data);
+                break;
+            case ComponentUpdateOp { ComponentId: Equipment } equipment when equipment.EntityId == character:
+                ReadEquipment(equipment.Data);
                 break;
             case ComponentUpdateOp { ComponentId: Ids.CharacterCredentialsComponent } rewards
                 when rewards.EntityId == character:
@@ -88,7 +108,8 @@ internal sealed class ShopScenario
                 var expectedBalance = _initialBalance - (_initiallyOwned ? 0 : Price);
                 var insufficient = _responses == 4;
                 Require(purchase.Status == StatusCode.Success && _balance == expectedBalance &&
-                    _items.Count == 1 && _items.Contains(Cosmetic) && (_initiallyOwned || _reportedOwnership));
+                    (_cosmeticEquipped ? _items.Count == 0 : _items.Count == 1 && _items.ContainsValue(Cosmetic)) &&
+                    (_initiallyOwned || _reportedOwnership));
                 var result = new SchemaReader(purchase.Data);
                 Require(result.ReadFieldId() == 1);
                 result.ReadInt64();
@@ -120,7 +141,34 @@ internal sealed class ShopScenario
                     return StartTransaction(request, character, "armor_hands_shin_cosmetic");
 
                 Console.WriteLine($"   [OK] Cosmetic checkout and duplicate handling. Balance {_balance} Zennies");
-                Completed = true;
+                if (_cosmeticEquipped)
+                {
+                    Console.WriteLine("   [OK] Equipped cosmetic was restored in the initial character snapshot");
+                    return Move(request, character, 3, 1, FeetCosmeticSlot, 5, 0);
+                }
+                return Move(request, character, 1, 5, _items.Single().Key, 1, 20);
+            case CommandResponseOp { ComponentId: Inventory, CommandIndex: 3 } moved:
+                var move = new SchemaReader(moved.Data);
+                Require(moved.Status == StatusCode.Success && move.ReadFieldId() == 1);
+                var id = move.ReadUInt32();
+                Require(move.ReadFieldId() == 2 && move.ReadBool() == (id != 1) && !move.HasMore);
+                switch (id)
+                {
+                    case 1:
+                        Require(!_cosmeticEquipped && _items.ContainsValue(Cosmetic));
+                        return Move(request, character, 2, 5, _items.Single().Key, 1, FeetCosmeticSlot);
+                    case 2:
+                        Require(_cosmeticEquipped && _items.Count == 0);
+                        return Move(request, character, 3, 1, FeetCosmeticSlot, 5, 0);
+                    case 3:
+                        Require(!_cosmeticEquipped && _items.GetValueOrDefault(0) == Cosmetic);
+                        return Move(request, character, 4, 5, 0, 1, FeetCosmeticSlot);
+                    case 4:
+                        Require(_cosmeticEquipped && _items.Count == 0);
+                        Console.WriteLine("   [OK] Cosmetic equip and unequip replicate, and an incompatible slot is rejected");
+                        Completed = true;
+                        break;
+                }
                 break;
         }
         return null;
@@ -128,17 +176,65 @@ internal sealed class ShopScenario
 
     private void RecordItems(ref SchemaReader reader)
     {
-        Require(reader.ReadFieldId() == 9);
         foreach (var raw in reader.ReadObjectList())
         {
             var entry = new SchemaReader(raw);
-            Require(entry.ReadByte() == 0 && entry.ReadFieldId() == 1);
-            entry.ReadInt32();
+            var removed = entry.ReadBool();
+            Require(entry.ReadFieldId() == (removed ? 2 : 1));
+            var index = entry.ReadInt32();
+            if (removed)
+            {
+                Require(_items.Remove(index) && !entry.HasMore);
+                continue;
+            }
             Require(entry.ReadFieldId() == 2);
             var item = new SchemaReader(entry.ReadBytesSpan());
-            Require(item.ReadFieldId() == 1 && item.ReadOptionalString() is not null && item.ReadFieldId() == 2);
-            Require(_items.Add(item.ReadOptionalString()!));
+            _items[index] = ItemId(ref item);
         }
+    }
+
+    private void ReadEquipment(byte[] data)
+    {
+        var reader = new SchemaReader(data);
+        Require(reader.ReadFieldId() == 1);
+        var slots = new Dictionary<int, string>();
+        foreach (var raw in reader.ReadObjectList())
+        {
+            var entry = new SchemaReader(raw);
+            Require(entry.ReadFieldId() == 1);
+            var slot = entry.ReadInt32();
+            Require(entry.ReadFieldId() == 2);
+            var item = new SchemaReader(entry.ReadBytesSpan());
+            slots.Add(slot, ItemId(ref item));
+        }
+        _cosmeticEquipped = slots.GetValueOrDefault(FeetCosmeticSlot) == Cosmetic;
+        Require(slots.GetValueOrDefault(3) == "armor_feet_reimagined_starter" && slots.ContainsKey(18));
+    }
+
+    private static string ItemId(ref SchemaReader item)
+    {
+        Require(item.ReadFieldId() == 1 && item.ReadOptionalString() is not null && item.ReadFieldId() == 2);
+        return item.ReadOptionalString()!;
+    }
+
+    private static CommandRequestOp Move(long request, long character, uint id, int fromBag, int fromSlot, int toBag, int toSlot)
+    {
+        static void Slot(SchemaWriter writer, int bag, int slot)
+        {
+            writer.AddInt32(1, bag);
+            writer.AddInt32(2, slot);
+            writer.AddEmptyOption(3);
+        }
+
+        var data = new SchemaWriter();
+        data.AddUInt32(1, id);
+        data.AddObject(2, move =>
+        {
+            move.AddObject(1, from => Slot(from, fromBag, fromSlot));
+            move.AddObject(2, to => Slot(to, toBag, toSlot));
+        });
+        data.AddBool(3, true);
+        return new() { RequestId = request, EntityId = character, ComponentId = Inventory, CommandIndex = 3, Data = data.ToArray() };
     }
 
     private static long ReadBalance(ref SchemaReader reader)

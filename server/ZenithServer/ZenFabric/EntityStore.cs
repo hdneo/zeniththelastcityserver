@@ -20,6 +20,7 @@ public sealed class StoredEntity
     public long? VisibleToWorker { get; init; }
     internal bool ShareInArea { get; init; }
     internal (string Realm, string Area)? SharedSpace { get; set; }
+    internal bool IsAreaOwned => VisibleToWorker is null && SharedSpace is not null;
     public Dictionary<uint, StoredComponent> Components { get; } = new();
 
     public Dictionary<uint, long> Delegations =>

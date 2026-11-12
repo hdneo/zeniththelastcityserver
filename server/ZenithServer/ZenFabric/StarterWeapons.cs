@@ -1,6 +1,7 @@
 using Zenith.Protocol.Components;
 using Zenith.Protocol.Schema;
 using Zenith.Protocol.ZenFabric;
+using ZenithServer.Accounts;
 
 namespace ZenithServer.ZenFabric;
 
@@ -13,17 +14,23 @@ internal static class StarterWeapons
     internal const uint PreWarm = 4022;
     internal const uint Bow = 4031;
     internal const uint Arrow = 4032;
+    internal const uint Hookshot = 4035;
     internal const uint Projectile = 2030;
     internal const int MaxAmmo = 12;
     internal const int AmmoRechargeMs = 7000;
     internal const int ShoulderSlot = 18;
     internal const string BowItemId = "weapon_bow_reimagined_starter";
+    internal const string DesertBowItemId = "weapon_bow_reimagined_desert";
     internal const string ArrowPrefab = "Projectile-BoStaffArrow-Reimagined-Base";
     internal const string AirChops = "godstone_airChops";
+    internal static readonly (int Slot, int Attachment, string ItemId, string Prefab)[] Grapples =
+    [
+        (19, 4, "hookshot_sport_variant_lefthand", "hookshot_sport_variant-lefthand"),
+        (27, 5, "hookshot_sport_variant_righthand", "hookshot_sport_variant-righthand"),
+    ];
 
-    // Build 56557 wire defaults for the starter bow's ItemDefinition. The item instance below
-    // supplies the catalog ID and uses the same generated instance ID as the equipped item.
-    private static readonly byte[] BowDefinition = Convert.FromHexString(
+    // The stock bow and grapples use the same ItemDefinition defaults.
+    private static readonly byte[] PhysicalItemDefinition = Convert.FromHexString(
         "0100010000000002000003000000000004000005000100000000060000000000070000000000080000000000090000000000" +
         "0a00000000000b00000000000c0001000000000d00000000000e00000000000f0000100000000000110000120000000000" +
         "1300000000001400001500001800000000001900000000001a00000000001b00000000001c00001d00000000001f000000" +
@@ -76,25 +83,71 @@ internal static class StarterWeapons
         return slot;
     }
 
-    public static ComponentData[] ShoulderBow(long workerId, long actorId, long avatarId, string characterId,
+    public static ComponentData[] ShoulderBow(long workerId, long actorId, long avatarId, StoredLootItem equipped, int ammo,
         (float X, float Y, float Z) position)
-    {
-        var item = new SchemaWriter();
-        item.AddBytes(1, BowDefinition);
-        item.AddObject(2, CharacterEntities.StarterItem(characterId, ShoulderSlot, BowItemId));
-        item.AddEmptyList(3);
-        item.AddBool(10, false);
-        item.AddBool(11, true); // Spawned by a player
-        item.AddBool(12, false);
-        item.AddBool(13, false);
-        return
+        =>
         [
-            ..Physical("Item-CN-Bow-Sky1", workerId, actorId, position, default, avatarId),
-            new(Item, item.ToArray()),
-            new(Bow, BowState(0, 0, MaxAmmo, 0)),
+            ..Physical(equipped.ItemId == DesertBowItemId ? "Item-CN-Bow-Reimagined-Rare" : "Item-CN-Bow-Sky1",
+                workerId, actorId, position, default, avatarId),
+            new(Item, ItemSnapshot(CharacterGear.WriteItem(equipped, -ShoulderSlot))),
+            new(Bow, BowState(0, 0, ammo, 0)),
             new(4033, [1, 0, 0, 2, 0, 0]), // Beam and staff states on the stock bow prefab
             new(4034, [1, 0, 0, 0, 0, 0]),
         ];
+
+    public static ComponentData[] HandGrapple(int index, long workerId, long actorId, long avatarId, string characterId,
+        (float X, float Y, float Z) position)
+    {
+        var grapple = Grapples[index];
+        return
+        [
+            ..Physical(grapple.Prefab, workerId, actorId, position, default, avatarId, attachmentPath: grapple.Attachment),
+            new(Item, ItemSnapshot(CharacterEntities.StarterItem(characterId, grapple.Slot, grapple.ItemId))),
+            new(Hookshot, GrappleState(default, false)),
+        ];
+    }
+
+    internal static byte[] ItemSnapshot(SchemaWriter equipped, bool spawnedByPlayer = true, bool cannotBeClaimed = false)
+    {
+        var item = new SchemaWriter();
+        item.AddBytes(1, PhysicalItemDefinition);
+        item.AddObject(2, equipped);
+        item.AddEmptyList(3);
+        item.AddBool(10, cannotBeClaimed);
+        item.AddBool(11, spawnedByPlayer);
+        item.AddBool(12, false);
+        item.AddBool(13, false);
+        return item.ToArray();
+    }
+
+    public static byte[] GrappleState((float X, float Y, float Z) target, bool hit)
+    {
+        var snapshot = new SchemaWriter();
+        WriteGrappleTarget(snapshot, target, hit);
+        return snapshot.ToArray();
+    }
+
+    public static byte[] GrappleMove((float X, float Y, float Z) target, bool hit, bool retract, bool immediate)
+    {
+        var update = new SchemaWriter();
+        update.AddObject(1001, move =>
+        {
+            WriteGrappleTarget(move, target, hit);
+            move.AddBool(3, retract);
+            move.AddBool(4, immediate);
+        });
+        return update.ToArray();
+    }
+
+    private static void WriteGrappleTarget(SchemaWriter writer, (float X, float Y, float Z) target, bool hit)
+    {
+        writer.AddObject(1, location =>
+        {
+            location.AddFloat(1, target.X);
+            location.AddFloat(2, target.Y);
+            location.AddFloat(3, target.Z);
+        });
+        writer.AddBool(2, hit);
     }
 
     public static byte[] BowState(float draw, float knock, int ammo, float recharge)
@@ -214,7 +267,7 @@ internal static class StarterWeapons
 
     private static ComponentData[] Physical(string metadata, long workerId, long actorId,
         (float X, float Y, float Z) position, (float X, float Y, float Z) syncPosition,
-        long? parent = null, bool grabbable = true)
+        long? parent = null, bool grabbable = true, int attachmentPath = 3)
     {
         var server = ZenFabricRuntime.InternalWorkerEntityId;
         var grabState = new SchemaWriter();
@@ -241,7 +294,7 @@ internal static class StarterWeapons
             })),
             new(Ids.Metadata, StandardComponents.Metadata(metadata)),
             new(Ids.Position, StandardComponents.Position(position.X, position.Y, position.Z)),
-            new(Ids.ZSyncComponent, CharacterEntities.ZSyncSnapshot(syncPosition, workerId, parent)),
+            new(Ids.ZSyncComponent, CharacterEntities.ZSyncSnapshot(syncPosition, workerId, parent, attachmentPath: attachmentPath)),
             new(Ids.OwningWorker, StandardComponents.OwningWorker(workerId)),
             new(3016, [1, 0, 1, 2, 0, 1]), // Track the client transform
             ..(grabbable ? new ComponentData[] { new(Grabbable, grabState.ToArray()), new(2016, []) } : []),

@@ -103,13 +103,24 @@ public sealed class DefaultGameLogic(ServerOptions opts, CharacterCommands chara
             case (CosmeticShop.Wallet, CosmeticShop.StartSession or CosmeticShop.StartTransaction or CosmeticShop.Purchase)
                 when e.VisibleToWorker == caller.WorkerEntityId:
                 return characters.HandleCosmeticShop(rt, caller, req, e);
+            case (CharacterEntities.Inventory, CharacterGear.MoveCommand) when e.VisibleToWorker == caller.WorkerEntityId:
+                return characters.MoveInventory(rt, caller, req, e);
+            case (EnemyLoot.Component or EnemyLoot.Ownership or StarterWeapons.Grabbable, 1)
+                when e.VisibleToWorker == caller.WorkerEntityId && e.Components.ContainsKey(EnemyLoot.Component):
+                return characters.HandleEnemyLoot(rt, caller, req, e);
+            case (StarterWeapons.Grabbable or EnemyLoot.Ownership, 1) when e.EntityType == FinaleSoulCollection.OrbPrefab:
+                return characters.HandleFinaleSoul(rt, caller, req);
             case (StarterWeapons.Bow, 1 or 2 or 4) when e.VisibleToWorker == caller.WorkerEntityId:
                 return characters.HandleBow(rt, caller, req, e);
+            case (StarterWeapons.Hookshot, 1 or 2) when e.VisibleToWorker == caller.WorkerEntityId:
+                return characters.HandleGrapple(rt, caller, req, e);
             case (StarterWeapons.Arrow, 1 or 2 or 3) when e.VisibleToWorker == caller.WorkerEntityId:
                 return characters.HandleArrow(rt, caller, req, e);
             case (Ids.ActorStatsComponent, 15) when e.VisibleToWorker == caller.WorkerEntityId:
             case (StarterWeapons.Godstone, 9) when e.VisibleToWorker == caller.WorkerEntityId:
                 return characters.TryStarterAbility(rt, caller, req, e);
+            case (StarterWeapons.Projectile, 3) when e.VisibleToWorker == caller.WorkerEntityId:
+                return characters.HandleProjectileHit(rt, caller, req, e);
             case (StarterWeapons.Projectile, 4) when e.VisibleToWorker == caller.WorkerEntityId:
                 return characters.EndStarterProjectile(rt, caller, req, e);
             case (CharacterEntities.Friend, 1) when e.VisibleToWorker == caller.WorkerEntityId:

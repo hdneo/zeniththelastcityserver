@@ -61,7 +61,16 @@ public sealed class Account
 }
 
 public sealed record StoredCharacter(string Id, string Name, uint Type, uint Role, uint Gender,
-    IReadOnlyDictionary<uint, string> Appearance);
+    IReadOnlyDictionary<uint, string> Appearance)
+{
+    public int Experience { get; init; }
+    public IReadOnlyList<StoredLootItem> LootInventory { get; init; } = [];
+    public IReadOnlyDictionary<int, string> GearLocations { get; init; } = new Dictionary<int, string>();
+    // Nonnegative keys are cosmetic bag positions. Negative keys represent equipped cosmetic slots.
+    public IReadOnlyDictionary<int, int> CosmeticLocations { get; init; } = new Dictionary<int, int>();
+}
+
+public sealed record StoredLootItem(string InstanceId, string ItemId, int Level, int Rarity);
 
 public sealed record StoredPlayerReport(string ReporteeId, string? Comment, DateTimeOffset SubmittedAt);
 
@@ -193,6 +202,26 @@ public sealed class AccountStore
     public StoredCharacter[] ListCharacters(Account account)
     {
         lock (_lock) return account.Characters.ToArray();
+    }
+
+    internal StoredCharacter? UpdateCharacter(Account account, string id, Func<StoredCharacter, StoredCharacter?> change)
+    {
+        lock (_lock)
+        {
+            var index = account.Characters.FindIndex(character => character.Id == id);
+            if (index < 0) return null;
+            var before = account.Characters[index];
+            if (change(before) is not { } after) return null;
+            if (ReferenceEquals(before, after)) return before;
+            account.Characters[index] = after;
+            try { Save(account); }
+            catch
+            {
+                account.Characters[index] = before;
+                throw;
+            }
+            return after;
+        }
     }
 
     public bool IsCharacterNameAvailable(string name)

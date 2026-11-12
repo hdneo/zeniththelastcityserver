@@ -19,6 +19,8 @@ using ZenithServer.ZenFabric;
 
 var builder = WebApplication.CreateBuilder(args);
 var opts = builder.Configuration.GetSection("Zenith").Get<ServerOptions>() ?? new ServerOptions();
+var lootOptions = builder.Configuration.GetSection("Zenith:EnemyLoot")
+    .Get<EnemyLootOptions>(binding => binding.ErrorOnUnknownConfiguration = true) ?? new();
 opts.DataDirectory = Path.GetFullPath(opts.DataDirectory);
 Directory.CreateDirectory(opts.DataDirectory);
 
@@ -27,6 +29,8 @@ var jsonStorage = new JsonGameStorage(opts.DataDirectory);
 var mysqlConnection = builder.Configuration.GetConnectionString("ZenithMySql");
 
 builder.Services.AddSingleton(opts);
+builder.Services.AddSingleton(lootOptions);
+builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton(ca);
 builder.Services.AddSingleton<IGameStorage>(services => string.IsNullOrWhiteSpace(mysqlConnection)
     ? jsonStorage

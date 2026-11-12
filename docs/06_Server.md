@@ -85,7 +85,25 @@ In the same session, `SpawnableLootComponent` (2014 #1) has six successful claim
 
 Classless characters start in Neo City. The server publishes the city's bundled prefab and all three destination prefabs at login so the client can load the maps before the player reaches the gates. Walk or glide through a city gate to travel to Shifting Isles (Daily Session, east), Wasteland Grove (Adventure, west), or Trials of Telos (Boss Rush, north). At the gate, the server updates `PlayerWorldComponent` while the client continues moving along the path. Walk back along the entrance path or use the return command to go back to Neo City.
 
-The November 10 capture supplies the area template IDs, prefab paths and city signage. The installed client supplies the prefab addresses and checkpoint transforms. Each realm has one shared space per area. Daily rotation, enemies, encounter waves, challenge scoring and rewards still require game logic.
+The November 10 capture supplies the area template IDs, prefab paths and city signage. The installed client supplies the prefab addresses, checkpoint transforms, and encounter graphs. Each realm has one shared encounter run per area. The run resets when the area becomes empty.
+
+Shifting Isles selects one layout per UTC day from a shuffled rotation. Everyone entering on the same day gets the same layout, and restarting the server preserves the selection. At midnight UTC the city gate switches to the new layout. Players already inside can finish their run and get the new layout after returning to the city. The [rotation data](../server/ZenithServer/ClientData/daily_layouts.json) covers layouts 2, 4, 5, 9, 14, 16, 18, 21, and 22 from the build 56557 client. The remaining bundled layouts use additional encounter sequences that still need server support.
+
+Wasteland Grove has three combat islands. The rotating Shifting Isles layouts have one to three combat islands. Each starts with its authored opening pack, then spawns up to ten reinforcements at its marked spawners. A dead reinforcement can be replaced after two seconds while the wave still has spawns available. Some islands roll for an optional miniboss when cleared. Set `Zenith:ZenFabric:IslandMinibossChance` to change the base chance, which defaults to 0.2.
+
+After the party clears the combat islands and reaches Threshold, skirmish layouts spawn enemy waves and collection layouts ask players to carry soul orbs to two collectors in sequence. Clearing Threshold unlocks Pinnacle. Wasteland Grove opens Pinnacle with a skirmish before the Avatar of Telos, and Shifting Isles starts with the Avatar. Defeating it uses the boss loot pool and opens the return portal to Neo City. The [finale data](../server/ZenithServer/ClientData/island_finales.json) uses the client’s checkpoints, spawners, collectors, and portal positions. Wave balance and boss attacks use the server’s local rules. The stock event timers, difficulty tiers, and reward chests still need support.
+
+The Trials of Telos arena uses the bundled Boss Rush sequence of two Fire Titans, two Nature Elementals, and Boulger. The next wave starts three seconds after the previous one is defeated.
+
+After combat defeat, players can move while downed and use the self-handshake to revive at their current position. Enemies ignore downed players and regain health when no living players remain in the arena. Falls through the map use the most recent checkpoint.
+
+### Enemy loot
+
+Edit `Zenith:EnemyLoot` in `server/ZenithServer/appsettings.json` and restart the server. `RegularItems` and `BossItems` map exact client item IDs to relative weights. An item with weight `10` is ten times as likely to roll as one with weight `1` in the same pool. Set an item's weight to `0` to disable it, or set every weight in a pool to `0` to disable that pool. If a pool is omitted, the server uses the original four Desert drops for that pool.
+
+`RegularDropEvery` defaults to `4`. The regular pool rolls on defeats 1, 5, 9, and so on within each encounter. Set it to `1` for every regular defeat or `0` to disable regular drops. Boss Rush bosses and optional island minibosses always use the boss pool. Each eligible player gets one personal roll at their character level.
+
+The regular pool includes five Desert armor pieces and the Desert bow. The boss pool adds the Branded Reaper, Frozen Soul, Druidic Warrior, and Pirate armor sets. The named sets retain their client-defined rarity. Use the [build 56557 item catalog](data/item_catalog-56557.json) to find IDs. The server accepts visible armor that classless characters can equip in the five armor slots and the starter or Desert bow.
 
 ## Neo City cosmetic kiosk
 

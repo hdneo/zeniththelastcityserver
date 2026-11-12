@@ -41,7 +41,10 @@ internal sealed class CharacterScenario(string accountId, string name, uint char
                     Require(ReadString(ref entry, 3) == (characterType == 4 ? "classless" : "cyber_ninja") && ReadString(ref entry, 4) == "DPS");
                     Require(entry.ReadFieldId() == 5);
                     var stats = entry.ReadObjectList().Select(ReadStat).ToDictionary(x => x.Key, x => x.Value);
-                    Require(stats["level"] == "1" && stats["appearance"].Contains("5A7945FF", StringComparison.Ordinal));
+                    Require(int.TryParse(stats["level"], out var level) && level is >= 1 and <= 40 &&
+                        int.TryParse(stats["current_XP"], out var experience) && experience >= 0 &&
+                        (experience >= 6000) == (level >= 2) &&
+                        stats["appearance"].Contains("5A7945FF", StringComparison.Ordinal));
                     CharacterId = id;
                     break;
                 }

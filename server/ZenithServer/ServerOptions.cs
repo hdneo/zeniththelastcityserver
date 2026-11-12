@@ -23,6 +23,14 @@ public sealed class ServerOptions
     public int StartingZennies { get; set; } = 5000;
 }
 
+public sealed class EnemyLootOptions
+{
+    /// <summary>Interval between regular drops, starting on the first defeat. Zero disables regular drops.</summary>
+    public int RegularDropEvery { get; set; } = 4;
+    public Dictionary<string, int>? RegularItems { get; set; }
+    public Dictionary<string, int>? BossItems { get; set; }
+}
+
 public sealed class HttpOptions
 {
     public string BindAddress { get; set; } = "0.0.0.0";
@@ -52,6 +60,8 @@ public sealed class ZenFabricOptions
     public double[] DefaultSpawn { get; set; } = [0, 0, 0];
     /// <summary>Overrides the default initial character position for either game mode.</summary>
     public float[] CharacterSpawn { get; set; } = [];
+    /// <summary>Base chance (0 to 1) for a cleared combat island to spawn an optional miniboss.</summary>
+    public double IslandMinibossChance { get; set; } = 0.2;
 }
 
 public sealed class AuthOptions

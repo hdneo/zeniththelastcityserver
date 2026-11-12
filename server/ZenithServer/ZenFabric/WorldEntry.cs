@@ -7,36 +7,41 @@ namespace ZenithServer.ZenFabric;
 internal static class WorldEntry
 {
     public const float OutOfBoundsY = -150; // Stock InstakillOutOfBounds threshold.
+    public const string DailyId = "d43f0672-3e63-4fdf-984e-f369a5249ea6";
 
     internal sealed record Area(string Id, string Name, string Prefab,
         (float X, float Y, float Z) Origin, (float X, float Y, float Z) Bounds,
-        (float X, float Y, float Z) Spawn, int Capacity);
+        (float X, float Y, float Z) Spawn, int Capacity, DailyRotation.Layout? Daily = null, DateOnly? Date = null)
+    {
+        public string SharedId => Date is { } date ? $"{Id}:{date.DayNumber}" : Id;
+    }
 
     // Template IDs, positions and bounds are from the November 10 capture. Prefab addresses and
     // the starting checkpoints are from the installed client. Preserve the existing hub origin.
     public static readonly Area Hub = new("6484fa5c-ad17-4b11-9412-f912afd75c14", "Neo City",
         "079955399a35be944956b3b059e0c5a7", (0, 0, 0), (300, 270, 330), (26.538f, 6.797f, 26.493f), 20);
 
+    public static readonly Area Adventure = new("443a50bb-b60a-4423-afa6-21cc77b18c5b", "Wasteland Grove", "7b887548e731a834ab66f6df5e7fad37",
+        // The path is at Y=-2.47 here. The full teleport checks for ground within five metres.
+        (-685, 97.9f, -83.4f), (1074, 800, 1074), (-169.770f, 0.5f, -10.09f), 4);
+
+    public static readonly Area BossRush = new("a462fbec-d8c1-4740-b2bc-50ff774e577f", "Trials of Telos", "9cc8e22f410ce4b47b0053d0986da85f",
+        (-6, -9.5f, 345), (200, 200, 360), (-12.94f, 3.49f, 188.54f), 4);
+
     private sealed record Gate(Area Destination, (float X, float Y, float Z) CityEntry, (float X, float Y, float Z) Exit);
 
     private static readonly Gate[] Gates =
     [
-        new(new("d43f0672-3e63-4fdf-984e-f369a5249ea6", "Shifting Isles", "09564d7cc0469a14d975d89a8cf48ab3",
-            (618, 32.6f, -307), (973.2f, 786.8f, 947.8f), (163.548f, 7.880f, -0.697f), 4),
-            (150, 6.5f, 0), (126.714f, 4.243f, 0.297f)),
-        new(new("443a50bb-b60a-4423-afa6-21cc77b18c5b", "Wasteland Grove", "7b887548e731a834ab66f6df5e7fad37",
-            // The path is at Y=-2.47 here. The full teleport checks for ground within five metres.
-            (-685, 97.9f, -83.4f), (1074, 800, 1074), (-169.770f, 0.5f, -10.09f), 4),
-            (-150, 1, -11), (-125.6f, 0.54f, -13.8f)),
-        new(new("a462fbec-d8c1-4740-b2bc-50ff774e577f", "Trials of Telos", "9cc8e22f410ce4b47b0053d0986da85f",
-            (-6, -9.5f, 345), (200, 200, 360), (-12.94f, 3.49f, 188.54f), 4),
-            (-12.7f, 6, 165), (-11.9f, 4.3f, 140.7f)),
+        new(Adventure, (-150, 1, -11), (-125.6f, 0.54f, -13.8f)),
+        new(BossRush, (-12.7f, 6, 165), (-11.9f, 4.3f, 140.7f)),
     ];
 
-    public static IReadOnlyList<Area> Areas { get; } = [Hub, ..Gates.Select(gate => gate.Destination)];
+    public static Area[] Areas(Area daily) => [Hub, daily, Adventure, BossRush];
 
-    public static Area? GateDestination(Area current, (double X, double Y, double Z) position)
+    public static Area? GateDestination(Area current, Area? daily, (double X, double Y, double Z) position)
     {
+        if (current == Hub && IsAtGate(position, (150, 6.5f, 0))) return daily;
+        if (current.Daily is { } layout && IsAtGate(position, layout.Exit)) return Hub;
         foreach (var gate in Gates)
         {
             if (current == Hub && IsAtGate(position, gate.CityEntry)) return gate.Destination;
@@ -137,7 +142,7 @@ internal static class WorldEntry
         return current;
     }
 
-    public static byte[] TeleportEvent((float X, float Y, float Z) position)
+    public static byte[] TeleportEvent((float X, float Y, float Z) position, bool quick = false)
     {
         var w = new SchemaWriter();
         w.AddObject(1001, teleport =>
@@ -149,7 +154,7 @@ internal static class WorldEntry
                 location.AddDouble(3, position.Z);
             });
             teleport.AddEmptyOption(2); // Keep the client's orientation.
-            teleport.AddBool(3, false); // Full teleport with the loading screen.
+            teleport.AddBool(3, quick);
         });
         return w.ToArray();
     }

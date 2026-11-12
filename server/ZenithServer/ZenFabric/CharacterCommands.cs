@@ -1,5 +1,5 @@
+using System.Globalization;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using Zenith.Protocol.Components;
 using Zenith.Protocol.Schema;
 using Zenith.Protocol.ZenFabric;
@@ -8,17 +8,22 @@ using ZenithServer.Accounts;
 namespace ZenithServer.ZenFabric;
 
 /// <summary>Character selection commands on entity 4, component 2010.</summary>
-public sealed class CharacterCommands(AccountStore accounts, ServerOptions options, ILogger<CharacterCommands> log)
+public sealed class CharacterCommands(AccountStore accounts, ServerOptions options, EnemyLootOptions lootOptions, TimeProvider clock,
+    ILogger<CharacterCommands> log)
 {
     private static readonly string[] Classes = ["", "blade_master", "essence_mage", "cyber_ninja", "classless"];
     private static readonly string[] Roles = ["DPS", "TANK", "SUPPORT", "CROSS_ROLE"];
-    private readonly Dictionary<string, Dictionary<string, string>> _starterStats = LoadStarterStats();
+    private readonly CharacterProgression _progression = new();
     private readonly Dictionary<long, ActiveSpawn> _activeSpawns = new();
+    private readonly EnemyLootTable _loot = new(lootOptions);
+    private readonly DailyRotation _daily = new(clock);
+    private readonly EnemyEncounters _enemies = new(options.ZenFabric.IslandMinibossChance,
+        lootOptions.RegularDropEvery, log);
 
     private enum LifeState : uint { Downed = 1, Recovering = 2, Alive = 3 }
 
     private sealed record ActiveSpawn(string CharacterId, uint CharacterType, uint Role, long PlayerId, long[] Entities,
-        (float X, float Y, float Z) Position, Dictionary<WorldEntry.Area, long> AreaEntities, int MaxHealth)
+        (float X, float Y, float Z) Position, Dictionary<WorldEntry.Area, long> AreaEntities, int StartingHealth)
     {
         public long CharacterEntityId => Entities[0];
         public long AvatarId => Entities[1];
@@ -31,12 +36,25 @@ public sealed class CharacterCommands(AccountStore accounts, ServerOptions optio
         public bool WorldLoaded { get; set; }
         public bool SkipLoginTeleport { get; set; }
         public (float X, float Y, float Z)? TeleportDestination { get; set; }
+        public bool QuickTeleport { get; set; }
         public bool PositionConfirmed { get; set; }
         public bool WorldEntered { get; set; }
         public LifeState Life { get; set; } = LifeState.Alive;
-        public long RecoverAfter { get; set; }
+        public int Health { get; set; } = StartingHealth;
+        public int MaxHealth { get; set; } = StartingHealth;
+        public int Experience { get; set; }
+        public int Level { get; set; }
+        public int PendingExperience { get; set; }
+        public long ExperienceSource { get; set; }
+        public long RetryExperienceAt { get; set; }
+        public Dictionary<long, EnemyLoot> LootDrops { get; } = [];
+        public long CheckpointRecoveryAt { get; set; }
+        public (float X, float Y, float Z)? DeathTether { get; set; }
         public WorldEntry.Area? Area { get; set; } = AreaEntities.Count == 0 ? null : WorldEntry.Hub;
+        public WorldEntry.Area? DailyArea { get; set; } = AreaEntities.Keys.FirstOrDefault(area => area.Daily is not null);
         public long? ShoulderBowId { get; set; }
+        public StoredLootItem? EquippedBow { get; set; }
+        public long[] GrappleIds { get; set; } = [];
         public CosmeticShop.Checkout? CosmeticCheckout { get; set; }
         public float BowDraw { get; set; }
         public float BowKnock { get; set; }
@@ -47,42 +65,56 @@ public sealed class CharacterCommands(AccountStore accounts, ServerOptions optio
         public bool SpawnStatsSent { get; set; }
         public (double X, double Y, double Z) CurrentPosition { get; set; } = Position;
         public long NextAirChop { get; set; }
-        public Dictionary<Guid, (long EntityId, long Expires)> AirChops { get; } = new();
+        public Dictionary<Guid, ActiveProjectile> AirChops { get; } = new();
         public long? AreaEntityId => Area is { } area ? AreaEntities[area] : null;
-        public (float X, float Y, float Z) RecoveryPosition => Area?.Spawn ?? CharacterEntities.DefaultSpawnPosition(false);
+        public (float X, float Y, float Z)? Checkpoint { get; set; }
+        public long[] AggroTargets { get; set; } = [];
+        public (float X, float Y, float Z) RecoveryPosition => Checkpoint ?? Area?.Spawn ?? CharacterEntities.DefaultSpawnPosition(false);
     }
 
-    private sealed class ActiveArrow(Guid cast, long entityId, long expires)
+    private class ActiveProjectile(long entityId, long expires)
     {
-        public Guid Cast { get; } = cast;
         public long EntityId { get; } = entityId;
         public long Expires { get; set; } = expires;
+        public (double X, double Y, double Z)? LaunchPosition { get; set; }
+        public bool Hit { get; set; }
+    }
+
+    private sealed class ActiveArrow(Guid cast, long entityId, long expires) : ActiveProjectile(entityId, expires)
+    {
+        public Guid Cast { get; } = cast;
         public bool Shot { get; set; }
     }
 
     public void OnAvatarMovement(ZenFabricRuntime rt, WorkerConnection caller, ComponentUpdateOp update)
     {
         if (!_activeSpawns.TryGetValue(caller.WorkerEntityId, out var spawn) || update.EntityId != spawn.AvatarId ||
-            !spawn.WorldEntered || spawn.TeleportDestination is not null || spawn.Life != LifeState.Alive) return;
+            !spawn.WorldEntered || spawn.TeleportDestination is not null || spawn.Life == LifeState.Recovering) return;
 
         var location = update.ComponentId == Ids.Position
             ? StandardComponents.ReadPosition(update.Data)
             : WorldEntry.ReadZSyncPosition(update.Data);
         if (location is not { } position || !double.IsFinite(position.X) || !double.IsFinite(position.Y) || !double.IsFinite(position.Z)) return;
         spawn.CurrentPosition = position;
+        if (spawn.Life == LifeState.Downed) return;
         if (position.Y >= WorldEntry.OutOfBoundsY)
         {
-            if (spawn.Area is { } area && WorldEntry.GateDestination(area, position) is { } destination)
-                EnterArea(rt, caller, spawn, destination);
+            if (spawn.Area is { } area)
+            {
+                if (WorldEntry.GateDestination(area, spawn.DailyArea, position) is { } destination)
+                    EnterArea(rt, caller, spawn, destination);
+                else if (_enemies.IsFinaleExit(caller, position))
+                    EnterArea(rt, caller, spawn, WorldEntry.Hub, teleportToSpawn: true);
+                else if (EncounterCatalog.CheckpointAt(area, position) is { } checkpoint)
+                    spawn.Checkpoint = checkpoint;
+            }
             return;
         }
         if (rt.Entities.Get(spawn.CharacterEntityId) is not { } character) return;
 
-        // The stock client requests recovery after it receives the downed event.
-        // Keep automatic recovery for clients that never send that command.
-        spawn.RecoverAfter = Environment.TickCount64 + 1000;
-        SetLife(rt, spawn, character, LifeState.Downed);
-        SetHealth(rt, character, 0);
+        // A fall out of the map forces checkpoint recovery. Combat deaths wait for the player's request.
+        DownPlayer(rt, spawn, character, forceCheckpoint: true);
+        SetHealth(rt, spawn, character, 0);
         log.LogInformation("Character {CharacterId} fell below the world at Y={Height:F1}", character.Id, position.Y);
     }
 
@@ -98,7 +130,7 @@ public sealed class CharacterCommands(AccountStore accounts, ServerOptions optio
         {
             var reader = new SchemaReader(req.Data);
             RequireField(ref reader, 1);
-            // The client may propose recovery details. Use the server's recovery position and health.
+            // The payload includes a proposed position and health. Use the last tracked avatar position.
             if (reader.ReadOptionHasValue()) reader.ReadBytesSpan();
             RequireEnd(ref reader);
         }
@@ -116,7 +148,8 @@ public sealed class CharacterCommands(AccountStore accounts, ServerOptions optio
     public bool HandleCosmeticShop(ZenFabricRuntime rt, WorkerConnection caller, CommandRequestOp req, StoredEntity character)
     {
         if (!_activeSpawns.TryGetValue(caller.WorkerEntityId, out var spawn) || spawn.CharacterEntityId != character.Id ||
-            caller.Session is not { } session || accounts.FindById(session.PlayFabId) is not { } account)
+            caller.Session is not { } session || accounts.FindById(session.PlayFabId) is not { } account ||
+            accounts.ListCharacters(account).FirstOrDefault(c => c.Id == spawn.CharacterId) is not { } stored)
             return false;
 
         try
@@ -160,7 +193,10 @@ public sealed class CharacterCommands(AccountStore accounts, ServerOptions optio
             if (purchased)
             {
                 PublishWallet(rt, character, wallet.Balance);
-                CosmeticShop.PublishPurchase(rt, character, account.PlayFabId, wallet.Items);
+                var locations = CosmeticShop.Locations(stored, wallet.Items);
+                var position = locations.Single(entry => entry.Value == wallet.Items.Length - 1).Key;
+                CosmeticShop.PublishInventory(rt, character, stored, account.PlayFabId, wallet.Items, locations, [position]);
+                CosmeticShop.PublishOwnership(rt, character, wallet.Items);
             }
             rt.SendCommandResponse(caller, req, CosmeticShop.CheckoutResult(checkout, price, before, wallet.Balance,
                 succeeded ? 7 : -1, succeeded ? null : "Insufficient Zennies"));
@@ -177,16 +213,282 @@ public sealed class CharacterCommands(AccountStore accounts, ServerOptions optio
         return true;
     }
 
+    public bool MoveInventory(ZenFabricRuntime rt, WorkerConnection caller, CommandRequestOp req, StoredEntity character)
+    {
+        if (!_activeSpawns.TryGetValue(caller.WorkerEntityId, out var spawn) || spawn.CharacterEntityId != character.Id ||
+            spawn.CharacterType != 4 || caller.Session is not { } session ||
+            accounts.FindById(session.PlayFabId) is not { } account ||
+            accounts.ListCharacters(account).FirstOrDefault(c => c.Id == spawn.CharacterId) is not { } stored)
+            return false;
+
+        try
+        {
+            var move = CharacterGear.ReadMove(req.Data);
+            var wallet = accounts.ReadCosmeticWallet(account);
+            var success = false;
+            if (CosmeticShop.Position(move.From) is { } cosmeticFrom && CosmeticShop.Position(move.To) is { } cosmeticTo)
+            {
+                var locations = CosmeticShop.Locations(stored, wallet.Items);
+                success = CosmeticShop.TryMove(cosmeticFrom, cosmeticTo, move.AllowSwap, locations, wallet.Items);
+                if (success && cosmeticFrom != cosmeticTo)
+                {
+                    var updated = accounts.UpdateCharacter(account, stored.Id,
+                        current => current with { CosmeticLocations = locations })!;
+                    CosmeticShop.PublishInventory(rt, character, updated, account.PlayFabId, wallet.Items, locations,
+                        [cosmeticFrom, cosmeticTo]);
+                }
+            }
+            else if (CharacterGear.Position(move.From) is { } from && CharacterGear.Position(move.To) is { } to)
+            {
+                var gear = new CharacterGear(stored);
+                success = gear.Move(from, to, move.AllowSwap);
+                if (success && from != to)
+                {
+                    var updated = accounts.UpdateCharacter(account, stored.Id,
+                        current => current with { GearLocations = gear.Locations })!;
+                    gear.PublishInventory(rt, character, updated, account.PlayFabId, wallet.Items, [from, to]);
+                    UpdateEquippedBow(rt, caller, spawn, gear.At(-StarterWeapons.ShoulderSlot));
+                }
+            }
+            var response = new SchemaWriter();
+            response.AddUInt32(1, move.Id);
+            response.AddBool(2, success);
+            rt.SendCommandResponse(caller, req, response.ToArray());
+        }
+        catch (SchemaFormatException ex)
+        {
+            rt.SendCommandFailure(caller, req, StatusCode.ApplicationError, ex.Message);
+        }
+        catch (Exception ex) when (ex is IOException or System.Data.Common.DbException)
+        {
+            log.LogError(ex, "Could not save inventory move for worker {WorkerId}", caller.WorkerEntityId);
+            rt.SendCommandFailure(caller, req, StatusCode.ApplicationError, "Could not save inventory move");
+        }
+        return true;
+    }
+
     private static void PublishWallet(ZenFabricRuntime rt, StoredEntity character, int balance) =>
         rt.ReplaceComponentSnapshot(character, CosmeticShop.Wallet, CosmeticShop.WalletState(balance),
             CosmeticShop.WalletState(balance, updateOnly: true));
+
+    public bool HandleGrapple(ZenFabricRuntime rt, WorkerConnection caller, CommandRequestOp req, StoredEntity entity)
+    {
+        if (!_activeSpawns.TryGetValue(caller.WorkerEntityId, out var spawn) || !spawn.GrappleIds.Contains(entity.Id))
+            return false;
+
+        try
+        {
+            var reader = new SchemaReader(req.Data);
+            RequireField(ref reader, 1);
+            (float X, float Y, float Z) target = default;
+            var hit = false;
+            var retract = req.CommandIndex == 2;
+            var immediate = false;
+            if (retract)
+            {
+                immediate = reader.ReadBool();
+            }
+            else
+            {
+                var location = new SchemaReader(reader.ReadBytesSpan());
+                RequireField(ref location, 1);
+                var x = location.ReadFloat();
+                RequireField(ref location, 2);
+                var y = location.ReadFloat();
+                RequireField(ref location, 3);
+                var z = location.ReadFloat();
+                RequireEnd(ref location);
+                RequireField(ref reader, 2);
+                hit = reader.ReadBool();
+                RequireField(ref reader, 3);
+                reader.ReadBool();
+                var dx = x - spawn.CurrentPosition.X;
+                var dy = y - spawn.CurrentPosition.Y;
+                var dz = z - spawn.CurrentPosition.Z;
+                if (!CanFight(spawn) || !(dx * dx + dy * dy + dz * dz <= 100 * 100))
+                    throw new SchemaFormatException("Grapple target is out of reach");
+                target = (x, y, z);
+            }
+            RequireEnd(ref reader);
+            rt.ReplaceComponentSnapshot(entity, StarterWeapons.Hookshot, StarterWeapons.GrappleState(target, hit),
+                StarterWeapons.GrappleMove(target, hit, retract, immediate));
+            rt.SendCommandResponse(caller, req, []);
+        }
+        catch (SchemaFormatException ex)
+        {
+            rt.SendCommandFailure(caller, req, StatusCode.ApplicationError, ex.Message);
+        }
+        return true;
+    }
+
+    public bool HandleEnemyLoot(ZenFabricRuntime rt, WorkerConnection caller, CommandRequestOp req, StoredEntity entity)
+    {
+        if (!_activeSpawns.TryGetValue(caller.WorkerEntityId, out var spawn) || !CanFight(spawn) ||
+            !spawn.LootDrops.TryGetValue(entity.Id, out var loot) || loot.Expires <= Environment.TickCount64 ||
+            !loot.CanReach(spawn.CurrentPosition))
+        {
+            rt.SendCommandFailure(caller, req, StatusCode.PermissionDenied, "Loot is unavailable or out of reach");
+            return true;
+        }
+
+        try
+        {
+            var reader = new SchemaReader(req.Data);
+            switch (req.ComponentId)
+            {
+                case StarterWeapons.Grabbable:
+                    var (held, hand, actor) = ReadGrabRequest(ref reader);
+                    if (held && (actor != spawn.CharacterEntityId || HandAttachment(spawn, hand) == 0))
+                        throw new SchemaFormatException("Loot must be grabbed with an active character hand");
+                    loot.Grab(rt, spawn.CharacterEntityId, caller.WorkerEntityId, held ? hand : 0);
+                    if (!held) loot.SetTransformOwner(rt, 0, spawn.CurrentPosition, Environment.TickCount64);
+                    rt.SendCommandResponse(caller, req, []);
+                    break;
+
+                case EnemyLoot.Ownership:
+                    var (worker, release, owner) = ReadOwnershipRequest(ref reader);
+                    if (owner != spawn.CharacterId || !release && (worker != caller.WorkerEntityId || loot.Hand == 0))
+                        throw new SchemaFormatException("Loot transform ownership requires the active character");
+                    loot.SetTransformOwner(rt, release ? 0 : worker, spawn.CurrentPosition, Environment.TickCount64);
+                    rt.SendCommandResponse(caller, req, []);
+                    break;
+
+                case EnemyLoot.Component:
+                    RequireField(ref reader, 1);
+                    var claimant = reader.ReadInt64();
+                    RequireField(ref reader, 2);
+                    reader.ReadBool(); // Both pickup and quick equip first put the reward in inventory.
+                    RequireEnd(ref reader);
+                    if (claimant != spawn.CharacterEntityId || caller.Session is not { } session ||
+                        accounts.FindById(session.PlayFabId) is not { } account ||
+                        rt.Entities.Get(spawn.CharacterEntityId) is not { } character)
+                    {
+                        rt.SendCommandFailure(caller, req, StatusCode.PermissionDenied, "Loot requires the owning character");
+                        break;
+                    }
+                    var pickupSlot = 0;
+                    var updated = accounts.UpdateCharacter(account, spawn.CharacterId, current =>
+                    {
+                        var gear = new CharacterGear(current);
+                        if (gear.FirstFreeBagSlot() is not { } available) return null;
+                        pickupSlot = available;
+                        gear.Locations.Add(available, loot.Item.InstanceId);
+                        return current with { LootInventory = [..current.LootInventory, loot.Item], GearLocations = gear.Locations };
+                    });
+                    if (updated is null)
+                    {
+                        rt.SendCommandFailure(caller, req, StatusCode.ApplicationError, "Inventory is full");
+                        break;
+                    }
+
+                    spawn.LootDrops.Remove(entity.Id);
+                    var wallet = accounts.ReadCosmeticWallet(account);
+                    new CharacterGear(updated).PublishInventory(rt, character, updated, account.PlayFabId, wallet.Items, [pickupSlot]);
+                    var response = new SchemaWriter();
+                    response.AddStringList(1, [loot.Item.InstanceId]);
+                    rt.SendCommandResponse(caller, req, response.ToArray());
+                    rt.DeleteEntity(entity.Id, null);
+                    break;
+            }
+        }
+        catch (SchemaFormatException ex)
+        {
+            rt.SendCommandFailure(caller, req, StatusCode.ApplicationError, ex.Message);
+        }
+        catch (IOException ex)
+        {
+            log.LogError(ex, "Could not save loot pickup for worker {WorkerId}", caller.WorkerEntityId);
+            rt.SendCommandFailure(caller, req, StatusCode.ApplicationError, "Could not save loot pickup");
+        }
+        return true;
+    }
+
+    internal bool HandleFinaleSoul(ZenFabricRuntime rt, WorkerConnection caller, CommandRequestOp req)
+    {
+        if (!_activeSpawns.TryGetValue(caller.WorkerEntityId, out var spawn) ||
+            GetCombatPlayer(caller) is not { } player || _enemies.FindSouls(caller, req.EntityId) is not { } souls)
+        {
+            rt.SendCommandFailure(caller, req, StatusCode.PermissionDenied, "Soul is unavailable");
+            return true;
+        }
+
+        try
+        {
+            var reader = new SchemaReader(req.Data);
+            if (req.ComponentId == StarterWeapons.Grabbable)
+            {
+                var (held, hand, actor) = ReadGrabRequest(ref reader);
+                var attachment = HandAttachment(spawn, hand);
+                if (held && (actor != spawn.CharacterEntityId || attachment == 0) ||
+                    !souls.TryGrab(rt, req.EntityId, player, held ? hand : 0, spawn.AvatarId, attachment, Environment.TickCount64))
+                {
+                    rt.SendCommandFailure(caller, req, StatusCode.PermissionDenied, "Soul is already held or out of reach");
+                    return true;
+                }
+            }
+            else
+            {
+                var (worker, release, owner) = ReadOwnershipRequest(ref reader);
+                if (owner != spawn.CharacterId || !release &&
+                    (worker != caller.WorkerEntityId || !souls.IsHeldBy(req.EntityId, worker)))
+                {
+                    rt.SendCommandFailure(caller, req, StatusCode.PermissionDenied, "Soul must be held by this character");
+                    return true;
+                }
+            }
+            rt.SendCommandResponse(caller, req, []);
+        }
+        catch (SchemaFormatException ex)
+        {
+            rt.SendCommandFailure(caller, req, StatusCode.ApplicationError, ex.Message);
+        }
+        return true;
+    }
+
+    private static int HandAttachment(ActiveSpawn spawn, long hand)
+    {
+        if (hand == 0) return 0;
+        if (hand == spawn.LeftHandId || hand == spawn.RegisteredLeftHand) return StarterWeapons.Grapples[0].Attachment;
+        return hand == spawn.RightHandId || hand == spawn.RegisteredRightHand ? StarterWeapons.Grapples[1].Attachment : 0;
+    }
+
+    private static (bool Held, long Hand, long Actor) ReadGrabRequest(ref SchemaReader reader)
+    {
+        RequireField(ref reader, 1);
+        var grab = new SchemaReader(reader.ReadBytesSpan());
+        RequireField(ref grab, 1);
+        var held = grab.ReadBool();
+        var hand = ReadOptionalEntity(ref grab, 2);
+        ReadString(ref grab, 3);
+        var actor = ReadOptionalEntity(ref grab, 4);
+        RequireField(ref grab, 5);
+        if (grab.ReadOptionHasValue()) grab.ReadUInt32();
+        RequireEnd(ref grab);
+        RequireEnd(ref reader);
+        return (held, hand, actor);
+    }
+
+    private static (long Worker, bool Release, string? Owner) ReadOwnershipRequest(ref SchemaReader reader)
+    {
+        var worker = ReadOptionalEntity(ref reader, 1);
+        RequireField(ref reader, 2);
+        var release = reader.ReadBool();
+        var owner = ReadString(ref reader, 3);
+        RequireEnd(ref reader);
+        return (worker, release, owner);
+    }
 
     public void Tick(ZenFabricRuntime rt)
     {
         var now = Environment.TickCount64;
         foreach (var spawn in _activeSpawns.Values)
         {
-            if (spawn.Life == LifeState.Downed && now >= spawn.RecoverAfter &&
+            foreach (var loot in spawn.LootDrops.Values.Where(loot => loot.Expires <= now).ToArray())
+            {
+                spawn.LootDrops.Remove(loot.Entity.Id);
+                rt.DeleteEntity(loot.Entity.Id, null);
+            }
+            if (spawn.Life == LifeState.Downed && spawn.CheckpointRecoveryAt != 0 && now >= spawn.CheckpointRecoveryAt &&
                 rt.Entities.Get(spawn.CharacterEntityId) is { } character)
                 BeginRecovery(rt, spawn, character);
             foreach (var cast in spawn.AirChops.Where(entry => entry.Value.Expires <= now).ToArray())
@@ -207,6 +509,142 @@ public sealed class CharacterCommands(AccountStore accounts, ServerOptions optio
                 PublishBowAmmo(rt, spawn, bow, now, recharged: true);
             }
         }
+        var daily = _daily.Today;
+        foreach (var worker in rt.ReadyWorkers)
+        {
+            if (!_activeSpawns.TryGetValue(worker.WorkerEntityId, out var spawn)) continue;
+            if (spawn.PendingExperience > 0 && now >= spawn.RetryExperienceAt)
+                SaveExperience(rt, worker, spawn, now);
+            RefreshDailyTrigger(rt, worker, spawn, daily);
+        }
+
+        _enemies.Tick(rt, now, GetCombatPlayer, (player, attacker, damage) => DamagePlayer(rt, player, attacker, damage),
+            (worker, targets) =>
+            {
+                if (_activeSpawns.TryGetValue(worker.WorkerEntityId, out var spawn))
+                    PublishAggro(rt, spawn, targets);
+            });
+    }
+
+    private static void RefreshDailyTrigger(ZenFabricRuntime rt, WorkerConnection worker, ActiveSpawn spawn,
+        WorldEntry.Area daily)
+    {
+        // Keep the original geometry and encounter space for players still inside yesterday's daily.
+        if (spawn.DailyArea is not { } previous || previous == daily || spawn.Area == previous) return;
+        rt.DeleteEntity(spawn.AreaEntities[previous], null);
+        var replacement = rt.CreateEntity(0, WorldEntry.AreaTrigger(daily), worker.WorkerEntityId);
+        spawn.AreaEntities.Remove(previous);
+        spawn.AreaEntities.Add(daily, replacement.Id);
+        spawn.DailyArea = daily;
+    }
+
+    private static void PublishAggro(ZenFabricRuntime rt, ActiveSpawn spawn, long[] targets)
+    {
+        if (spawn.AggroTargets.AsSpan().SequenceEqual(targets) ||
+            rt.Entities.Get(spawn.CharacterEntityId) is not { } character) return;
+        spawn.AggroTargets = targets;
+        var snapshot = CharacterEntities.AggroMap(targets);
+        rt.ReplaceComponentSnapshot(character, CharacterEntities.PlayerAggroMap, snapshot, snapshot);
+    }
+
+    private EnemyEncounters.Player? GetCombatPlayer(WorkerConnection worker) =>
+        _activeSpawns.TryGetValue(worker.WorkerEntityId, out var spawn) && CanFight(spawn)
+            ? new(worker.WorkerEntityId, spawn.CharacterEntityId, spawn.CurrentPosition)
+            : null;
+
+    private static bool CanFight(ActiveSpawn spawn) =>
+        spawn.WorldEntered && spawn.Life == LifeState.Alive && spawn.TeleportDestination is null;
+
+    private void AwardDefeat(ZenFabricRuntime rt, WorkerConnection killer, EnemyEncounters.Defeat defeat, long now)
+    {
+        foreach (var worker in rt.ReadyWorkers)
+        {
+            if (worker.SharedSpace != killer.SharedSpace || !_activeSpawns.TryGetValue(worker.WorkerEntityId, out var spawn) ||
+                !spawn.WorldEntered || !defeat.Contributors.Contains(spawn.CharacterEntityId)) continue;
+
+            spawn.PendingExperience = Math.Min(_progression.MaximumExperience, spawn.PendingExperience + defeat.Experience);
+            spawn.ExperienceSource = defeat.EnemyId;
+            if (now >= spawn.RetryExperienceAt) SaveExperience(rt, worker, spawn, now);
+            if (!defeat.DropsLoot || _loot.Roll(defeat.Boss) is not { } reward) continue;
+            var loot = EnemyLoot.Spawn(rt, worker, spawn.CharacterId, spawn.CharacterEntityId, spawn.Level,
+                reward, defeat.Position, now);
+            spawn.LootDrops.Add(loot.Entity.Id, loot);
+        }
+    }
+
+    private void SaveExperience(ZenFabricRuntime rt, WorkerConnection worker, ActiveSpawn spawn, long now)
+    {
+        if (worker.Session is not { } session || accounts.FindById(session.PlayFabId) is not { } account ||
+            rt.Entities.Get(spawn.CharacterEntityId) is not { } character) return;
+
+        StoredCharacter? updated;
+        try
+        {
+            updated = accounts.UpdateCharacter(account, spawn.CharacterId, current =>
+            {
+                var experience = Math.Min(_progression.MaximumExperience, current.Experience + spawn.PendingExperience);
+                return experience == current.Experience ? current : current with { Experience = experience };
+            });
+        }
+        catch (IOException ex)
+        {
+            log.LogError(ex, "Could not save experience for character {CharacterId}", spawn.CharacterId);
+            spawn.RetryExperienceAt = now + 5000;
+            return;
+        }
+        spawn.PendingExperience = 0;
+        spawn.RetryExperienceAt = 0;
+        if (updated is null || updated.Experience == spawn.Experience) return;
+
+        var gained = updated.Experience - spawn.Experience;
+        spawn.Experience = updated.Experience;
+        var previousLevel = spawn.Level;
+        spawn.Level = _progression.LevelAt(spawn.Experience);
+        var levelUp = spawn.Level > previousLevel;
+        var stats = _progression.Stats(Classes[spawn.CharacterType], spawn.Level);
+        var delta = new SchemaWriter();
+        if (levelUp) delta.AddInt32(7, spawn.Level);
+        delta.AddInt32(8, spawn.Experience);
+        if (levelUp)
+        {
+            var maxHealth = CharacterEntities.StartingHealth(stats);
+            if (spawn.Health > 0) spawn.Health = Math.Clamp(spawn.Health + maxHealth - spawn.MaxHealth, 1, maxHealth);
+            spawn.MaxHealth = maxHealth;
+            delta.AddInt32(9, spawn.Health);
+        }
+        delta.AddInt32(19, spawn.Experience);
+        if (levelUp)
+        {
+            delta.AddInt32(29, spawn.MaxHealth);
+            delta.AddFloat(32, float.Parse(stats["attack"], CultureInfo.InvariantCulture));
+            delta.AddInt32(33, spawn.Level);
+            rt.ReplaceComponentSnapshot(character, Ids.ActorStatsComponent,
+                CharacterEntities.ActorStatsSnapshot(spawn.CharacterType, stats, initialized: true),
+                CharacterEntities.InitializeActorStats(spawn.CharacterType, stats, includeBase: true));
+        }
+        delta.AddObject(1004, xp =>
+        {
+            xp.AddInt32(1, gained);
+            xp.AddInt32(2, spawn.Experience);
+            xp.AddString(3, spawn.ExperienceSource.ToString(CultureInfo.InvariantCulture));
+        });
+        if (levelUp) delta.AddObject(1005, level =>
+        {
+            level.AddInt32(1, previousLevel);
+            level.AddInt32(2, spawn.Level);
+        });
+        rt.ReplaceComponentSnapshot(character, CharacterEntities.PublicActorStats,
+            CharacterEntities.PublicStatsSnapshot(spawn.Role, stats, initialized: true, spawn.Experience, spawn.Health), delta.ToArray());
+    }
+
+    private void DamagePlayer(ZenFabricRuntime rt, EnemyEncounters.Player player, long attacker, int damage)
+    {
+        var spawn = _activeSpawns[player.WorkerId];
+        if (rt.Entities.Get(player.CharacterId) is not { } character) return;
+        var dealt = Math.Min(damage, spawn.Health);
+        var health = spawn.Health - dealt;
+        if (health == 0) DownPlayer(rt, spawn, character, forceCheckpoint: false);
+        SetHealth(rt, spawn, character, health, dealt, attacker);
     }
 
     public bool HandleBow(ZenFabricRuntime rt, WorkerConnection caller, CommandRequestOp req, StoredEntity bow)
@@ -268,6 +706,7 @@ public sealed class CharacterCommands(AccountStore accounts, ServerOptions optio
                         return true;
                     }
                     if (rt.Entities.Get(shot.EntityId) is { } shotEntity) MarkArrowShot(rt, shotEntity, shot);
+                    shot.LaunchPosition = spawn.CurrentPosition;
                     spawn.NockedArrow = null;
                     spawn.BowAmmo -= cost;
                     if (spawn.NextArrowRecharge == 0) spawn.NextArrowRecharge = now + StarterWeapons.AmmoRechargeMs;
@@ -315,7 +754,7 @@ public sealed class CharacterCommands(AccountStore accounts, ServerOptions optio
         if (rt.Entities.Get(spawn.CharacterEntityId) is { } character)
         {
             var snapshot = new SchemaWriter();
-            CharacterEntities.WriteIdleCombat(snapshot, spawn.BowAmmo);
+            CharacterEntities.WriteCombatState(snapshot, spawn.BowAmmo);
             var update = new SchemaWriter();
             CharacterEntities.WriteCombatAmmo(update, spawn.BowAmmo);
             rt.ReplaceComponentSnapshot(character, CharacterEntities.Combat, snapshot.ToArray(), update.ToArray());
@@ -411,7 +850,7 @@ public sealed class CharacterCommands(AccountStore accounts, ServerOptions optio
                 var position = AirChopOrigin(handPosition, spawn.CurrentPosition);
                 var projectile = rt.CreateEntity(0, StarterWeapons.AirChopProjectile(caller.WorkerEntityId, character.Id,
                     castId, position), caller.WorkerEntityId, shareInArea: true);
-                spawn.AirChops.Add(castId, (projectile.Id, now + 3500));
+                spawn.AirChops.Add(castId, new(projectile.Id, now + 3500) { LaunchPosition = position });
                 spawn.NextAirChop = now + 120;
             }
 
@@ -431,7 +870,7 @@ public sealed class CharacterCommands(AccountStore accounts, ServerOptions optio
         RequireField(ref info, 1);
         var targets = info.ReadListCount();
         if (targets is < 0 or > 64) throw new SchemaFormatException("Invalid Air Chops target count");
-        info.ReadRaw(targets * sizeof(long)); // Starter projectiles have no server-side hit effects yet.
+        info.ReadRaw(targets * sizeof(long)); // Projectile impact is reported separately.
         RequireField(ref info, 2);
         if (!float.IsFinite(info.ReadFloat())) throw new SchemaFormatException("Invalid Air Chops intensity");
         RequireField(ref info, 3);
@@ -449,8 +888,13 @@ public sealed class CharacterCommands(AccountStore accounts, ServerOptions optio
         info.ReadBytesSpan(); // Local hand data
         RequireField(ref info, 10);
         var hand = new SchemaReader(info.ReadBytesSpan());
-        RequireField(ref hand, 1);
-        var position = new SchemaReader(hand.ReadBytesSpan());
+        return (cast, ReadAbsolutePosition(ref hand, 1));
+    }
+
+    private static (float X, float Y, float Z) ReadAbsolutePosition(ref SchemaReader reader, uint field)
+    {
+        RequireField(ref reader, field);
+        var position = new SchemaReader(reader.ReadBytesSpan());
         RequireField(ref position, 1);
         var x = position.ReadInt32() / 100_000f;
         RequireField(ref position, 2);
@@ -458,7 +902,7 @@ public sealed class CharacterCommands(AccountStore accounts, ServerOptions optio
         RequireField(ref position, 3);
         var z = position.ReadInt32() / 100_000f;
         RequireEnd(ref position);
-        return (cast, (x, y, z));
+        return (x, y, z);
     }
 
     private static (float X, float Y, float Z) AirChopOrigin((float X, float Y, float Z) hand,
@@ -468,6 +912,43 @@ public sealed class CharacterCommands(AccountStore accounts, ServerOptions optio
         var dy = hand.Y - avatar.Y;
         var dz = hand.Z - avatar.Z;
         return dx * dx + dy * dy + dz * dz <= 25 ? hand : ((float)avatar.X, (float)avatar.Y + 1.2f, (float)avatar.Z);
+    }
+
+    public bool HandleProjectileHit(ZenFabricRuntime rt, WorkerConnection caller, CommandRequestOp req, StoredEntity projectile)
+    {
+        if (!_activeSpawns.TryGetValue(caller.WorkerEntityId, out var spawn)) return false;
+        var isArrow = projectile.Components.ContainsKey(StarterWeapons.Arrow);
+        ActiveProjectile? shot = isArrow
+            ? spawn.Arrows.Values.FirstOrDefault(arrow => arrow.EntityId == projectile.Id)
+            : spawn.AirChops.Values.FirstOrDefault(chop => chop.EntityId == projectile.Id);
+        if (shot is null) return false;
+
+        try
+        {
+            var reader = new SchemaReader(req.Data);
+            RequireField(ref reader, 1);
+            var successful = reader.ReadBool();
+            RequireField(ref reader, 2);
+            var target = reader.ReadInt64();
+            var impact = ReadAbsolutePosition(ref reader, 3);
+            RequireField(ref reader, 4);
+            if (!float.IsFinite(reader.ReadFloat())) throw new SchemaFormatException("Invalid projectile hit");
+            RequireEnd(ref reader);
+
+            var now = Environment.TickCount64;
+            if (successful && CanFight(spawn) && !shot.Hit && shot.Expires > now && shot.LaunchPosition is { } origin)
+            {
+                shot.Hit = _enemies.Hit(rt, caller, target, spawn.CharacterEntityId, isArrow ? 120 : 90,
+                    impact, origin, isArrow ? 45 : 30, now, out var defeat);
+                if (defeat is not null) AwardDefeat(rt, caller, defeat, now);
+            }
+            rt.SendCommandResponse(caller, req, []);
+        }
+        catch (SchemaFormatException ex)
+        {
+            rt.SendCommandFailure(caller, req, StatusCode.ApplicationError, ex.Message);
+        }
+        return true;
     }
 
     public bool EndStarterProjectile(ZenFabricRuntime rt, WorkerConnection caller, CommandRequestOp req, StoredEntity projectile)
@@ -493,24 +974,49 @@ public sealed class CharacterCommands(AccountStore accounts, ServerOptions optio
 
     private static void BeginRecovery(ZenFabricRuntime rt, ActiveSpawn spawn, StoredEntity character)
     {
-        if (spawn.Life != LifeState.Downed || rt.Entities.Get(spawn.AvatarId) is not { } avatar) return;
+        if (spawn.Life != LifeState.Downed || spawn.TeleportDestination is not null ||
+            rt.Entities.Get(spawn.AvatarId) is not { } avatar) return;
 
+        var (x, y, z) = spawn.CurrentPosition;
+        var inPlace = spawn.CheckpointRecoveryAt == 0 && y >= WorldEntry.OutOfBoundsY &&
+            Math.Abs(x) <= 20_000 && Math.Abs(y) <= 20_000 && Math.Abs(z) <= 20_000;
+        spawn.CheckpointRecoveryAt = 0;
         SetLife(rt, spawn, character, LifeState.Recovering);
-        SendTeleport(rt, spawn, avatar, spawn.RecoveryPosition);
+        SendTeleport(rt, spawn, avatar, inPlace ? ((float)x, (float)y, (float)z) : spawn.RecoveryPosition, quick: inPlace);
+    }
+
+    private static void DownPlayer(ZenFabricRuntime rt, ActiveSpawn spawn, StoredEntity character, bool forceCheckpoint)
+    {
+        var (x, y, z) = spawn.CurrentPosition;
+        spawn.DeathTether = forceCheckpoint ? null : ((float)x, (float)y, (float)z);
+        spawn.CheckpointRecoveryAt = forceCheckpoint ? Environment.TickCount64 + 1000 : 0;
+        ClearStarterProjectiles(rt, spawn);
+        PublishAggro(rt, spawn, []);
+        SetLife(rt, spawn, character, LifeState.Downed);
     }
 
     private static void SetLife(ZenFabricRuntime rt, ActiveSpawn spawn, StoredEntity character, LifeState state)
     {
         var update = new SchemaWriter();
         update.AddUInt32(1, (uint)state);
-        if (state == LifeState.Downed) update.AddObject(1001, e => e.AddBool(1, true));
-        if (state == LifeState.Alive) update.AddObject(1002, e => e.AddBool(2, false));
+        if (state == LifeState.Downed)
+        {
+            if (spawn.DeathTether is not null) CharacterEntities.WriteDeathTether(update, spawn.DeathTether);
+            update.AddObject(1001, e => e.AddBool(1, spawn.CheckpointRecoveryAt != 0));
+        }
+        if (state == LifeState.Alive)
+        {
+            if (spawn.DeathTether is not null) CharacterEntities.WriteDeathTether(update, null);
+            spawn.DeathTether = null;
+            update.AddObject(1002, e => e.AddString(2, null));
+        }
         spawn.Life = state;
         rt.ReplaceComponentSnapshot(character, Ids.PlayerLifecycleComponent,
-            CharacterEntities.PlayerLifecycle((uint)state, spawn.RecoveryPosition), update.ToArray());
+            CharacterEntities.PlayerLifecycle((uint)state, spawn.DeathTether), update.ToArray());
     }
 
-    private static void SetHealth(ZenFabricRuntime rt, StoredEntity character, int health)
+    private static void SetHealth(ZenFabricRuntime rt, ActiveSpawn spawn, StoredEntity character, int health,
+        int damage = 0, long attacker = 0)
     {
         var snapshot = character.Components[CharacterEntities.PublicActorStats].Data.ToArray();
         var reader = new SchemaReader(snapshot);
@@ -522,9 +1028,9 @@ public sealed class CharacterCommands(AccountStore accounts, ServerOptions optio
         RequireField(ref reader, 9);
         reader.ReadInt32();
 
-        var update = new SchemaWriter();
-        update.AddInt32(9, health);
-        update.WrittenSpan.CopyTo(snapshot.AsSpan(healthOffset));
+        var update = EnemyEncounters.HealthUpdate(health, damage, attacker, character.Id);
+        update.WrittenSpan[..(reader.Position - healthOffset)].CopyTo(snapshot.AsSpan(healthOffset));
+        spawn.Health = health;
         rt.ReplaceComponentSnapshot(character, CharacterEntities.PublicActorStats, snapshot, update.ToArray());
     }
 
@@ -663,9 +1169,11 @@ public sealed class CharacterCommands(AccountStore accounts, ServerOptions optio
     {
         if (_activeSpawns.Remove(worker.WorkerEntityId, out var spawn))
         {
+            ClearLootDrops(rt, spawn);
             rt.SetPlayerArea(worker, null);
             ClearStarterProjectiles(rt, spawn);
             if (spawn.ShoulderBowId is { } bow) rt.DeleteEntity(bow, null);
+            foreach (var grapple in spawn.GrappleIds) rt.DeleteEntity(grapple, null);
             foreach (var id in spawn.Entities.Reverse()) rt.DeleteEntity(id, null);
             foreach (var areaEntityId in spawn.AreaEntities.Values) rt.DeleteEntity(areaEntityId, null);
             log.LogInformation("Removed {Count} spawn entities for worker {WorkerId}", spawn.Entities.Length, worker.WorkerEntityId);
@@ -726,7 +1234,13 @@ public sealed class CharacterCommands(AccountStore accounts, ServerOptions optio
                     if (spawn.Life == LifeState.Recovering && rt.Entities.Get(spawn.CharacterEntityId) is { } character)
                     {
                         SetLife(rt, spawn, character, LifeState.Alive);
-                        SetHealth(rt, character, spawn.MaxHealth);
+                        SetHealth(rt, spawn, character, spawn.MaxHealth);
+                    }
+                    // The stock client confirms a quick teleport with command 1 only.
+                    if (spawn.QuickTeleport)
+                    {
+                        spawn.TeleportDestination = null;
+                        spawn.QuickTeleport = false;
                     }
                 }
                 return true;
@@ -768,7 +1282,7 @@ public sealed class CharacterCommands(AccountStore accounts, ServerOptions optio
             RequireField(ref reader, 3);
             if (reader.ReadOptionHasValue()) reader.ReadBool();
             RequireEnd(ref reader);
-            var area = WorldEntry.Areas.FirstOrDefault(area => area.Id == areaId);
+            var area = spawn.AreaEntities.Keys.FirstOrDefault(area => area.Id == areaId);
             var entityId = area is not null && spawn.AreaEntities.TryGetValue(area, out var id) ? (long?)id : null;
             rt.SendCommandResponse(caller, req, WorldEntry.AreaList(area, entityId));
             return;
@@ -792,7 +1306,10 @@ public sealed class CharacterCommands(AccountStore accounts, ServerOptions optio
             rt.Entities.Get(spawn.AvatarId) is not { } avatar) return;
 
         ClearStarterProjectiles(rt, spawn);
+        ClearLootDrops(rt, spawn);
+        PublishAggro(rt, spawn, []);
         spawn.Area = destination;
+        spawn.Checkpoint = null;
         UpdatePlayerWorld(rt, spawn, player);
         if (teleportToSpawn)
         {
@@ -803,7 +1320,8 @@ public sealed class CharacterCommands(AccountStore accounts, ServerOptions optio
         else
         {
             // Gate paths are continuous. Keep the avatar in motion and switch its replication area.
-            rt.SetPlayerArea(caller, destination.Id);
+            rt.SetPlayerArea(caller, destination.SharedId);
+            _enemies.Enter(rt, caller, destination);
         }
         log.LogInformation("Worker {WorkerId} entering {Area}", caller.WorkerEntityId, destination.Name);
     }
@@ -815,6 +1333,12 @@ public sealed class CharacterCommands(AccountStore accounts, ServerOptions optio
         foreach (var arrow in spawn.Arrows.Values) rt.DeleteEntity(arrow.EntityId, null);
         spawn.Arrows.Clear();
         spawn.NockedArrow = null;
+    }
+
+    private static void ClearLootDrops(ZenFabricRuntime rt, ActiveSpawn spawn)
+    {
+        foreach (var loot in spawn.LootDrops.Values) rt.DeleteEntity(loot.Entity.Id, null);
+        spawn.LootDrops.Clear();
     }
 
     private static void UpdatePlayerWorld(ZenFabricRuntime rt, ActiveSpawn spawn, StoredEntity player,
@@ -842,6 +1366,18 @@ public sealed class CharacterCommands(AccountStore accounts, ServerOptions optio
                 Data = CharacterEntities.ZSyncSnapshot(default, caller.WorkerEntityId, spawn.AvatarId),
             };
         }
+        for (var i = 0; i < spawn.GrappleIds.Length; i++)
+        {
+            if (rt.Entities.Get(spawn.GrappleIds[i]) is not { } grapple) continue;
+            grapple.Components[Ids.Position] = new StoredComponent { Data = data };
+            grapple.Components[Ids.ZSyncComponent] = new StoredComponent
+            {
+                Data = CharacterEntities.ZSyncSnapshot(default, caller.WorkerEntityId, spawn.AvatarId,
+                    attachmentPath: StarterWeapons.Grapples[i].Attachment),
+            };
+            rt.ReplaceComponentSnapshot(grapple, StarterWeapons.Hookshot, StarterWeapons.GrappleState(default, false),
+                StarterWeapons.GrappleMove(default, false, retract: true, immediate: true));
+        }
     }
 
     private void PublishEnteredWorld(ZenFabricRuntime rt, WorkerConnection caller, ActiveSpawn spawn)
@@ -849,7 +1385,7 @@ public sealed class CharacterCommands(AccountStore accounts, ServerOptions optio
         if (!spawn.SpawnStatsSent && rt.Entities.Get(spawn.CharacterEntityId) is { } character)
         {
             // The HUD caches its starting values and writes the labels only when they change.
-            var stats = _starterStats[Classes[spawn.CharacterType]];
+            var stats = _progression.Stats(Classes[spawn.CharacterType], spawn.Level);
             rt.ReplaceComponentSnapshot(character, Ids.ActorStatsComponent,
                 CharacterEntities.ActorStatsSnapshot(spawn.CharacterType, stats, initialized: true),
                 CharacterEntities.InitializeActorStats(spawn.CharacterType, stats));
@@ -857,17 +1393,38 @@ public sealed class CharacterCommands(AccountStore accounts, ServerOptions optio
             health.AddInt32(9, spawn.MaxHealth);
             health.AddInt32(29, spawn.MaxHealth);
             rt.ReplaceComponentSnapshot(character, CharacterEntities.PublicActorStats,
-                CharacterEntities.PublicStatsSnapshot(spawn.Role, stats, initialized: true), health.ToArray());
+                CharacterEntities.PublicStatsSnapshot(spawn.Role, stats, initialized: true, spawn.Experience), health.ToArray());
             spawn.SpawnStatsSent = true;
         }
-        if (spawn.Area is not null && spawn.ShoulderBowId is null)
+        UpdateEquippedBow(rt, caller, spawn, spawn.EquippedBow);
+        if (spawn.Area is not null && spawn.GrappleIds.Length == 0)
         {
             var (x, y, z) = spawn.CurrentPosition;
-            spawn.ShoulderBowId = rt.CreateEntity(0, StarterWeapons.ShoulderBow(caller.WorkerEntityId,
-                spawn.CharacterEntityId, spawn.AvatarId, spawn.CharacterId, ((float)x, (float)y, (float)z)),
-                caller.WorkerEntityId, shareInArea: true).Id;
+            spawn.GrappleIds = Enumerable.Range(0, StarterWeapons.Grapples.Length).Select(index =>
+                rt.CreateEntity(0, StarterWeapons.HandGrapple(index, caller.WorkerEntityId, spawn.CharacterEntityId,
+                    spawn.AvatarId, spawn.CharacterId, ((float)x, (float)y, (float)z)), caller.WorkerEntityId,
+                    shareInArea: true).Id).ToArray();
         }
-        rt.SetPlayerArea(caller, spawn.Area?.Id ?? "classic");
+        rt.SetPlayerArea(caller, spawn.Area?.SharedId ?? "classic");
+        _enemies.Enter(rt, caller, spawn.Area);
+    }
+
+    private static void UpdateEquippedBow(ZenFabricRuntime rt, WorkerConnection caller, ActiveSpawn spawn, StoredLootItem? bow)
+    {
+        if (spawn.EquippedBow?.InstanceId != bow?.InstanceId)
+        {
+            if (spawn.ShoulderBowId is { } previous) rt.DeleteEntity(previous, null);
+            spawn.ShoulderBowId = null;
+            foreach (var arrow in spawn.Arrows.Values.ToArray()) RemoveArrow(rt, spawn, arrow);
+            spawn.BowDraw = spawn.BowKnock = 0;
+            spawn.EquippedBow = bow;
+        }
+        if (bow is null || spawn.ShoulderBowId is not null || !spawn.WorldEntered) return;
+
+        var (x, y, z) = spawn.CurrentPosition;
+        spawn.ShoulderBowId = rt.CreateEntity(0, StarterWeapons.ShoulderBow(caller.WorkerEntityId,
+            spawn.CharacterEntityId, spawn.AvatarId, bow, spawn.BowAmmo, ((float)x, (float)y, (float)z)),
+            caller.WorkerEntityId, shareInArea: true).Id;
     }
 
     private void SendLoginTeleportIfReady(ZenFabricRuntime rt, WorkerConnection caller, ActiveSpawn spawn)
@@ -883,12 +1440,13 @@ public sealed class CharacterCommands(AccountStore accounts, ServerOptions optio
     }
 
     private static void SendTeleport(ZenFabricRuntime rt, ActiveSpawn spawn, StoredEntity avatar,
-        (float X, float Y, float Z) destination)
+        (float X, float Y, float Z) destination, bool quick = false)
     {
         spawn.TeleportDestination = destination;
+        spawn.QuickTeleport = quick;
         spawn.PositionConfirmed = false;
         rt.ReplaceComponentSnapshot(avatar, Ids.TeleportComponent, avatar.Components[Ids.TeleportComponent].Data,
-            WorldEntry.TeleportEvent(destination));
+            WorldEntry.TeleportEvent(destination, quick));
     }
 
     private void Spawn(ZenFabricRuntime rt, WorkerConnection caller, CommandRequestOp req, Account account,
@@ -939,18 +1497,24 @@ public sealed class CharacterCommands(AccountStore accounts, ServerOptions optio
         }
 
         var infiniteRealms = character.Type == 4;
-        var firstId = rt.Entities.Reserve(CharacterEntities.EntityCount + (infiniteRealms ? WorldEntry.Areas.Count : 0));
-        var areaEntities = infiniteRealms
-            ? WorldEntry.Areas.Select((area, index) => (area, id: firstId + CharacterEntities.EntityCount + index))
-                .ToDictionary(entry => entry.area, entry => entry.id)
-            : [];
+        var areas = infiniteRealms ? WorldEntry.Areas(_daily.Today) : [];
+        var firstId = rt.Entities.Reserve(CharacterEntities.EntityCount + areas.Length);
+        var areaEntities = areas.Select((area, index) => (area, id: firstId + CharacterEntities.EntityCount + index))
+            .ToDictionary(entry => entry.area, entry => entry.id);
         var position = CharacterEntities.SpawnPosition(options.ZenFabric.CharacterSpawn, infiniteRealms);
-        var stats = _starterStats[Classes[character.Type]];
+        var level = _progression.LevelAt(character.Experience);
+        var stats = _progression.Stats(Classes[character.Type], level);
         var wallet = infiniteRealms ? accounts.ReadCosmeticWallet(account) : new CosmeticWallet(0, []);
+        var gear = new CharacterGear(character);
         var graph = CharacterEntities.Build(firstId, player.Id, caller.WorkerEntityId, account.PlayFabId, character,
-            platform, position, stats, wallet);
+            platform, position, stats, wallet, gear);
         var spawn = new ActiveSpawn(character.Id, character.Type, character.Role, player.Id, graph.Select(e => e.Id).ToArray(), position,
-            areaEntities, CharacterEntities.StartingHealth(stats));
+            areaEntities, CharacterEntities.StartingHealth(stats))
+        {
+            Level = level,
+            Experience = character.Experience,
+            EquippedBow = gear.At(-StarterWeapons.ShoulderSlot),
+        };
         _activeSpawns.Add(caller.WorkerEntityId, spawn);
         try
         {
@@ -988,10 +1552,11 @@ public sealed class CharacterCommands(AccountStore accounts, ServerOptions optio
     {
         var className = Classes[character.Type];
         var role = Roles[character.Role];
-        var stats = new Dictionary<string, string>(_starterStats[className])
+        var experience = character.Experience.ToString(CultureInfo.InvariantCulture);
+        var stats = new Dictionary<string, string>(_progression.Stats(className, _progression.LevelAt(character.Experience)))
         {
-            ["current_XP"] = "0",
-            ["role_XP"] = JsonSerializer.Serialize(new Dictionary<string, string> { [role] = "0" }),
+            ["current_XP"] = experience,
+            ["role_XP"] = JsonSerializer.Serialize(new Dictionary<string, string> { [role] = experience }),
         };
         var data = new Dictionary<string, string>(stats)
         {
@@ -1011,16 +1576,6 @@ public sealed class CharacterCommands(AccountStore accounts, ServerOptions optio
         row.AddString(4, role);
         row.AddMap(5, data, (w, key) => w.AddString(1, key), (w, value) => w.AddString(2, value));
         return row;
-    }
-
-    private static Dictionary<string, Dictionary<string, string>> LoadStarterStats()
-    {
-        var path = Path.Combine(AppContext.BaseDirectory, "ClientData", "level_stats.json");
-        var rows = JsonNode.Parse(File.ReadAllText(path))!.AsArray();
-        return rows.Where(row => row?["level"]?.GetValue<int>() == 1).ToDictionary(
-            row => row!["className"]!.GetValue<string>(),
-            row => row!.AsObject().Where(stat => stat.Key != "className")
-                .ToDictionary(stat => stat.Key == "hp" ? "health" : stat.Key, stat => stat.Value!.ToString()));
     }
 
     private static bool IsValidName(string? name) =>
@@ -1054,6 +1609,12 @@ public sealed class CharacterCommands(AccountStore accounts, ServerOptions optio
     {
         RequireField(ref reader, field);
         return reader.ReadOptionalString();
+    }
+
+    private static long ReadOptionalEntity(ref SchemaReader reader, uint field)
+    {
+        RequireField(ref reader, field);
+        return reader.ReadOptionHasValue() ? reader.ReadInt64() : 0;
     }
 
     private static void RequireField(ref SchemaReader reader, uint field)

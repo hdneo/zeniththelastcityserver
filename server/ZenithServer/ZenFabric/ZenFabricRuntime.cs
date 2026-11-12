@@ -298,13 +298,13 @@ public sealed class ZenFabricRuntime : BackgroundService, INetEventListener
 
     private static bool HasOwnerAccess(StoredEntity entity, WorkerConnection worker) =>
         (!entity.Components.ContainsKey(Ids.Worker) || entity.Id == worker.WorkerEntityId) &&
-        (entity.VisibleToWorker is null || entity.VisibleToWorker == worker.WorkerEntityId);
+        !entity.IsAreaOwned && (entity.VisibleToWorker is null || entity.VisibleToWorker == worker.WorkerEntityId);
 
     private static bool IsVisibleTo(StoredEntity entity, WorkerConnection worker) =>
         HasOwnerAccess(entity, worker) || entity.SharedSpace is not null && entity.SharedSpace == worker.SharedSpace;
 
     private static bool CanSeeComponent(StoredEntity entity, WorkerConnection worker, uint componentId) =>
-        HasOwnerAccess(entity, worker) || CharacterEntities.PeerComponents.Contains(componentId);
+        HasOwnerAccess(entity, worker) || entity.IsAreaOwned || CharacterEntities.PeerComponents.Contains(componentId);
 
     public void SetPlayerArea(WorkerConnection worker, string? area)
     {
@@ -384,11 +384,18 @@ public sealed class ZenFabricRuntime : BackgroundService, INetEventListener
 
     /// <summary>Creates an entity (from workers or the built-in game logic).</summary>
     public StoredEntity CreateEntity(long entityId, IEnumerable<ComponentData> components, long? visibleToWorker = null, bool shareInArea = false)
+        => CreateEntity(entityId, components, visibleToWorker, shareInArea, null);
+
+    internal StoredEntity CreateAreaEntity((string Realm, string Area) space, IEnumerable<ComponentData> components)
+        => CreateEntity(0, components, null, true, space);
+
+    private StoredEntity CreateEntity(long entityId, IEnumerable<ComponentData> components, long? visibleToWorker,
+        bool shareInArea, (string Realm, string Area)? space)
     {
         var id = entityId != 0 ? entityId : Entities.Allocate();
         var e = Entities.Create(id, components, visibleToWorker, shareInArea);
         if (shareInArea)
-            e.SharedSpace = ReadyWorkers.FirstOrDefault(w => w.WorkerEntityId == visibleToWorker)?.SharedSpace;
+            e.SharedSpace = space ?? ReadyWorkers.FirstOrDefault(w => w.WorkerEntityId == visibleToWorker)?.SharedSpace;
         foreach (var w in ReadyWorkers.ToList())
             if (IsVisibleTo(e, w)) MakeVisible(w, e);
         return e;
@@ -399,6 +406,9 @@ public sealed class ZenFabricRuntime : BackgroundService, INetEventListener
         entity.Components[componentId] = new StoredComponent { Data = snapshot };
         Broadcast(new ComponentUpdateOp { EntityId = entity.Id, ComponentId = componentId, Data = update },
             filter: worker => worker.VisibleEntities.Contains(entity.Id) && CanSeeComponent(entity, worker, componentId));
+        if (componentId == Ids.AuthorityDelegation)
+            foreach (var worker in ReadyWorkers.Where(worker => worker.VisibleEntities.Contains(entity.Id)))
+                UpdateAuthority(worker, entity);
     }
 
     private void HandleCreateEntity(WorkerConnection w, CreateEntityRequestOp c)
@@ -415,7 +425,8 @@ public sealed class ZenFabricRuntime : BackgroundService, INetEventListener
     public void DeleteEntity(long entityId, (WorkerConnection Worker, long RequestId)? requester)
     {
         var entity = Entities.Get(entityId);
-        if (requester is { } client && entity?.VisibleToWorker is not null && IsVisibleTo(entity, client.Worker))
+        if (requester is { } client && entity is not null && (entity.VisibleToWorker is not null || entity.IsAreaOwned) &&
+            IsVisibleTo(entity, client.Worker))
         {
             Send(client.Worker, new DeleteEntityResponseOp
             {
@@ -488,7 +499,17 @@ public sealed class ZenFabricRuntime : BackgroundService, INetEventListener
     {
         req.CallerWorkerEntityId = caller.WorkerEntityId;
         var e = Entities.Get(req.EntityId);
-        if (e is null || !HasOwnerAccess(e, caller))
+        if (req is { ComponentId: StarterWeapons.Projectile, CommandIndex: 3 } &&
+            e is { IsAreaOwned: true, EntityType: EnemyProjectile.GunnerPrefab or EnemyProjectile.SniperPrefab } &&
+            IsVisibleTo(e, caller))
+        {
+            // Remote clients report collisions for visual cleanup. Damage is resolved by the server's shot.
+            SendCommandResponse(caller, req, []);
+            return;
+        }
+        var canGrabSoul = req is { ComponentId: StarterWeapons.Grabbable or EnemyLoot.Ownership, CommandIndex: 1 } &&
+            e is { IsAreaOwned: true, EntityType: FinaleSoulCollection.OrbPrefab } && IsVisibleTo(e, caller);
+        if (e is null || !HasOwnerAccess(e, caller) && !canGrabSoul)
         {
             SendCommandFailure(caller, req, StatusCode.NotFound, $"Entity {req.EntityId} not found");
             return;

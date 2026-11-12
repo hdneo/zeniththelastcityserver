@@ -16,7 +16,7 @@ internal static class CharacterEntities
     private const uint ActorStatusEffects = 1009;
     internal const uint Vfx = 1013;
     internal const uint Inventory = 1015;
-    private const uint Equipment = 1016;
+    internal const uint Equipment = 1016;
     private const uint AnimationDetector = 2015;
     private const uint ClientMovement = 2023;
     private const uint ServerMovement = 2024;
@@ -24,7 +24,7 @@ internal static class CharacterEntities
     private const uint Qbi = 2026;
     private const uint PlayerVoice = 1040;
     private const uint ClientQuestJournal = 2041;
-    private const uint PlayerAggroMap = 3000;
+    internal const uint PlayerAggroMap = 3000;
     internal const uint Friend = 3012;
     private const uint PlayerStatus = 3501;
     private const uint Party = 3503;
@@ -42,18 +42,8 @@ internal static class CharacterEntities
         Ids.PlayerLifecycleComponent, PublicActorStats, Vfx, InitialTransformOwnership, Combat, Equipment,
         AnimationDetector, ClientMovement, ServerMovement, ClientRotation, Qbi, ActorStatusEffects,
         StarterWeapons.Bow, StarterWeapons.Arrow, StarterWeapons.Item, StarterWeapons.PreWarm, StarterWeapons.Projectile,
-        StarterWeapons.Grabbable, StarterWeapons.Ownable,
+        StarterWeapons.Grabbable, StarterWeapons.Ownable, StarterWeapons.Hookshot,
     };
-
-    // Classless starter equipment, keyed by EquipmentSlot.
-    private static readonly (int Slot, string ItemId)[] InfiniteRealmsStarterEquipment =
-    [
-        (2, "armor_body_reimagined_starter"),
-        (3, "armor_feet_reimagined_starter"),
-        (4, "armor_hands_reimagined_starter"),
-        (5, "armor_legs_reimagined_starter"),
-        (StarterWeapons.ShoulderSlot, StarterWeapons.BowItemId),
-    ];
 
     // Initial snapshots that are identical for the characters in the November 4 and 8 captures.
     private static readonly byte[] EmptyClientMovement = Convert.FromHexString(
@@ -81,17 +71,15 @@ internal static class CharacterEntities
 
     public static SpawnEntity[] Build(long firstId, long playerId, long workerId, string accountId,
         StoredCharacter character, uint platform, (float X, float Y, float Z) position, Dictionary<string, string> stats,
-        CosmeticWallet wallet)
+        CosmeticWallet wallet, CharacterGear gear)
     {
         var avatarId = firstId + 1;
         var headId = firstId + 2;
         var leftId = firstId + 3;
         var rightId = firstId + 4;
         var positionData = StandardComponents.Position(position.X, position.Y, position.Z);
-        KeyValuePair<int, SchemaWriter>[] equipped = character.Type == 4
-            ? InfiniteRealmsStarterEquipment.Select(piece => KeyValuePair.Create(piece.Slot,
-                StarterItem(character.Id, piece.Slot, piece.ItemId))).ToArray()
-            : [];
+        var cosmetics = CosmeticShop.Locations(character, wallet.Items);
+        var equipped = EquipmentItems(character, gear, accountId, wallet.Items, cosmetics);
 
         ComponentData[] Base(string type, uint clientSet, uint serverSet, bool tracksClient)
         {
@@ -153,23 +141,24 @@ internal static class CharacterEntities
                     w.AddUInt32(2, character.Gender);
                 }),
                 new(Ids.ActorStatsComponent, ActorStatsSnapshot(character.Type, stats, initialized: false)),
-                new(PublicActorStats, PublicStatsSnapshot(character.Role, stats, initialized: false)),
+                new(PublicActorStats, PublicStatsSnapshot(character.Role, stats, initialized: false, experience: character.Experience)),
                 Make(ActorStatusEffects, w => w.AddEmptyList(1)),
-                Make(Combat, w => WriteIdleCombat(w, character.Type == 4 ? StarterWeapons.MaxAmmo : null)),
+                Make(Combat, w => WriteCombatState(w, character.Type == 4 ? StarterWeapons.MaxAmmo : null)),
                 new(Party, EmptyParty),
                 Make(Vfx, w => w.AddEmptyOption(1)),
                 Make(PlayerAggroMap, w => w.AddEmptyList(1)),
-                Make(Inventory, w => WriteInventory(w, equipped, accountId, wallet.Items)),
-                Make(Equipment, w =>
+                Make(Inventory, w => WriteInventory(w, equipped, accountId, wallet.Items, cosmetics, gear)),
+                Make(Ids.PlayerAccountPersistenceComponent, w =>
                 {
-                    w.AddMap(1, equipped, (entry, slot) => entry.AddInt32(1, slot),
-                        (entry, item) => entry.AddObject(2, item));
-                    w.AddString(2, "Equipment");
+                    w.AddBool(1, true);
+                    for (uint field = 2; field <= 4; field++) w.AddEmptyList(field);
                 }),
+                Make(Ids.PlayerWorldPersistenceComponent, WriteInitialWorldPersistence),
+                new(Equipment, EquipmentSnapshot(equipped)),
                 new(Friend, []),
                 Make(InviteRequestHandler, w => w.AddEmptyList(1)),
                 new(CosmeticShop.Wallet, CosmeticShop.WalletState(wallet.Balance)),
-                new(Ids.PlayerLifecycleComponent, PlayerLifecycle(3, position)),
+                new(Ids.PlayerLifecycleComponent, PlayerLifecycle(3, null)),
                 new(Ids.PlayerCharacterComponent, PlayerLinks(firstId, avatarId, playerId)),
                 new(Ids.NetworkedObjectInteractionComponent, InteractionHands(0, 0)),
                 new(PlayerStatus, InitialPlayerStatus),
@@ -210,17 +199,17 @@ internal static class CharacterEntities
         ];
     }
 
-    internal static void WriteIdleCombat(SchemaWriter writer, int? ammo)
+    internal static void WriteCombatState(SchemaWriter writer, int? ammo, long target = 0,
+        (float Duration, double Start)? vulnerability = null)
     {
         // The local stamina system reads the player's combat and PvP state to choose a regen rate.
-        writer.AddBool(1, false); // Vulnerable
+        writer.AddBool(1, vulnerability.HasValue);
         writer.AddEmptyOption(2); // Enemy scaling
-        writer.AddEmptyOption(3); // Target
+        WriteCombatTarget(writer, 3, target);
         writer.AddEmptyList(4); // Weakpoints
-        writer.AddBool(5, false); // Aggroed
-        writer.AddEmptyOption(6); // Vulnerability duration
-        writer.AddEmptyOption(7); // Vulnerability start
-        writer.AddEmptyOption(8); // Highest aggro entity
+        writer.AddBool(5, target != 0); // Aggroed
+        WriteCombatVulnerabilityTime(writer, vulnerability);
+        WriteCombatTarget(writer, 8, target);
         writer.AddFloat(9, 1); // Attack speed multiplier
         writer.AddBool(10, false); // PvP
         writer.AddString(11, null); // PvP team
@@ -232,19 +221,48 @@ internal static class CharacterEntities
         writer.AddBool(17, false); // Right-hand enchantment
     }
 
+    internal static void WriteCombatVulnerabilityTime(SchemaWriter writer, (float Duration, double Start)? vulnerability)
+    {
+        if (vulnerability is { } active)
+        {
+            writer.AddFloat(6, active.Duration, isOption: true);
+            writer.AddDouble(7, active.Start, isOption: true);
+        }
+        else
+        {
+            writer.AddEmptyOption(6);
+            writer.AddEmptyOption(7);
+        }
+    }
+
+    internal static void WriteCombatTarget(SchemaWriter writer, uint field, long target)
+    {
+        if (target == 0) writer.AddEmptyOption(field);
+        else writer.AddEntityId(field, target, isOption: true);
+    }
+
     internal static void WriteCombatAmmo(SchemaWriter writer, int? ammo)
     {
         if (ammo is { } count) writer.AddInt32(13, count, isOption: true);
         else writer.AddEmptyOption(13);
     }
 
+    internal static byte[] AggroMap(IEnumerable<long> enemies)
+    {
+        var w = new SchemaWriter();
+        w.AddMap(1, enemies.Select(enemy => KeyValuePair.Create(enemy, 0)),
+            (entry, enemy) => entry.AddEntityId(1, enemy), (entry, threat) => entry.AddInt32(2, threat));
+        return w.ToArray();
+    }
+
     internal static string StarterItemInstance(string characterId, int slot) =>
         FormattableString.Invariant($"{characterId}-starter-{slot}");
 
     internal static SchemaWriter StarterItem(string characterId, int slot, string itemId) =>
-        Item(StarterItemInstance(characterId, slot), itemId, slot, 1, slot, slot == StarterWeapons.ShoulderSlot ? -1 : 50);
+        Item(StarterItemInstance(characterId, slot), itemId, slot, 1, slot, slot is 18 or 19 or 27 ? -1 : 50);
 
-    internal static SchemaWriter Item(string instanceId, string itemId, int slot, int bag, int index, float durability)
+    internal static SchemaWriter Item(string instanceId, string itemId, int slot, int bag, int index, float durability,
+        int level = 1, int rarity = 9)
     {
         var item = new SchemaWriter();
         item.AddString(1, instanceId);
@@ -259,20 +277,52 @@ internal static class CharacterEntities
         item.AddEmptyOption(11); // Owning entity
         item.AddEntityId(12, 0); // Instance entity
         item.AddEmptyList(13); // Mods
-        item.AddInt32(14, 1); // Level
+        item.AddInt32(14, level);
         item.AddInt32(15, 0); // XP
         item.AddInt32(16, 1); // Crafting quality
         item.AddFloat(17, durability);
         item.AddString(18, instanceId); // Temporary instance ID
-        item.AddInt32(20, 9); // Starter rarity in Infinite Realms
-        item.AddInt32(21, 1); // Item level
+        item.AddInt32(20, rarity);
+        item.AddInt32(21, level); // Item level
         item.AddInt32(22, 0); // Infusion
         item.AddEmptyList(23); // Stat modifiers
         return item;
     }
 
+    internal static KeyValuePair<int, SchemaWriter>[] EquipmentItems(StoredCharacter character, CharacterGear gear, string accountId,
+        IReadOnlyList<string> items, IReadOnlyDictionary<int, int> locations)
+    {
+        if (character.Type != 4) return [];
+        var cosmetics = locations.Where(entry => entry.Key < 0).OrderByDescending(entry => entry.Key).Select(entry =>
+            KeyValuePair.Create(-entry.Key, CosmeticShop.Item(accountId, items, entry.Key, entry.Value)));
+        var grapples = StarterWeapons.Grapples.Select(grapple =>
+            KeyValuePair.Create(grapple.Slot, StarterItem(character.Id, grapple.Slot, grapple.ItemId)));
+        return gear.Equipment().Concat(grapples).Concat(cosmetics).ToArray();
+    }
+
+    internal static byte[] EquipmentSnapshot(KeyValuePair<int, SchemaWriter>[] equipped, bool updateOnly = false)
+    {
+        var writer = new SchemaWriter();
+        writer.AddMap(1, equipped, (entry, slot) => entry.AddInt32(1, slot),
+            (entry, item) => entry.AddObject(2, item));
+        if (!updateOnly) writer.AddString(2, "Equipment");
+        return writer.ToArray();
+    }
+
+    internal static void WriteEquippedInventory(SchemaWriter writer, KeyValuePair<int, SchemaWriter>[] equipped) =>
+        writer.AddObjectList(5, equipped.Select(entry => InventoryEntry(entry.Key, entry.Value)).ToArray());
+
+    internal static SchemaWriter InventoryEntry(int index, SchemaWriter? item)
+    {
+        var writer = new SchemaWriter();
+        writer.WriteByte(item is null ? (byte)1 : (byte)0);
+        writer.AddInt32(item is null ? 2u : 1u, index);
+        if (item is not null) writer.AddObject(2, item);
+        return writer;
+    }
+
     private static void WriteInventory(SchemaWriter writer, KeyValuePair<int, SchemaWriter>[] equipped, string accountId,
-        IReadOnlyList<string> cosmetics)
+        IReadOnlyList<string> cosmetics, IReadOnlyDictionary<int, int> locations, CharacterGear gear)
     {
         // The client looks up the standard bags even when none contains an item.
         var bags = new SchemaWriter[7];
@@ -283,26 +333,44 @@ internal static class CharacterEntities
             entry.AddInt32(1, type);
             entry.AddObject(2, bag =>
             {
-                bag.AddInt32(1, type == 0 ? 240 : 0); // Capacity
+            bag.AddInt32(1, type == 0 ? CharacterGear.Capacity : 0);
                 bag.AddEmptyOption(2); // Name
                 bag.AddInt32(3, type);
             });
         }
         writer.AddObjectList(1, bags);
-        for (uint field = 2; field <= 4; field++) writer.AddEmptyList(field);
-        var equippedEntries = new SchemaWriter[equipped.Length];
-        for (var i = 0; i < equipped.Length; i++)
-        {
-            var entry = equippedEntries[i] = new SchemaWriter();
-            entry.WriteByte(0); // Diff dictionary entry is present.
-            entry.AddInt32(1, equipped[i].Key);
-            entry.AddObject(2, equipped[i].Value);
-        }
-        writer.AddObjectList(5, equippedEntries);
+        writer.AddEmptyList(2);
+        writer.AddEmptyList(3);
+        gear.WriteBasicInventory(writer);
+        WriteEquippedInventory(writer, equipped);
         for (uint field = 6; field <= 8; field++) writer.AddEmptyList(field);
-        CosmeticShop.WriteInventory(writer, accountId, cosmetics);
+        CosmeticShop.WriteInventory(writer, accountId, cosmetics, locations);
         writer.AddEmptyList(10);
         writer.AddEmptyList(11);
+    }
+
+    private static void WriteInitialWorldPersistence(SchemaWriter writer)
+    {
+        // InventoryPanelController reads the title and season rank as it opens.
+        for (uint field = 1; field <= 14; field++) writer.AddEmptyList(field);
+        writer.AddString(15, "");
+        writer.AddEmptyList(16);
+        writer.AddEmptyList(17);
+        writer.AddObject(18, pvp =>
+        {
+            for (uint field = 1; field <= 5; field++) pvp.AddUInt32(field, 0);
+            pvp.AddEmptyList(6);
+            pvp.AddEmptyList(7);
+        });
+        writer.AddEmptyList(19);
+        writer.AddObject(20, rank =>
+        {
+            rank.AddInt32(1, 0);
+            rank.AddEmptyList(2);
+            rank.AddInt32(3, 0);
+            rank.AddInt32(4, 0);
+            rank.AddEmptyList(5);
+        });
     }
 
     public static byte[] AvatarLinks(long playerId, long left = 0, long right = 0, long head = 0, bool partsOnly = false)
@@ -426,33 +494,43 @@ internal static class CharacterEntities
         return writer.ToArray();
     }
 
-    internal static byte[] InitializeActorStats(uint characterType, Dictionary<string, string> stats)
+    internal static byte[] InitializeActorStats(uint characterType, Dictionary<string, string> stats, bool includeBase = false)
     {
         var writer = new SchemaWriter();
         WriteCurrentResources(writer, characterType, stats, initialized: true);
+        if (includeBase) WriteStatMap(writer, 13, stats);
         WriteStatMap(writer, 15, stats);
         return writer.ToArray();
     }
 
-    internal static byte[] PublicStatsSnapshot(uint role, Dictionary<string, string> stats, bool initialized)
+    internal static byte[] PublicStatsSnapshot(uint role, Dictionary<string, string> stats, bool initialized,
+        int experience, int? currentHealth = null)
+    {
+        var health = StartingHealth(stats);
+        return PublicStatsSnapshot(role, currentHealth ?? health, initialized ? health : 0, ReadStat(stats, "damage"),
+            ReadStat(stats, "attack"), level: (int)ReadStat(stats, "level", "1"), experience: experience);
+    }
+
+    internal static byte[] PublicStatsSnapshot(uint role, int health, int maxHealth, float damage, float attack,
+        int vulnerability = 0, int maxVulnerability = 0, float staggerDuration = 0, float maxStaggerDuration = 0,
+        int level = 1, int experience = 0)
     {
         var w = new SchemaWriter();
-        var health = StartingHealth(stats);
-        w.AddInt32(7, 1); // Level
-        w.AddInt32(8, 0); // XP
+        w.AddInt32(7, level);
+        w.AddInt32(8, experience);
         w.AddInt32(9, health);
-        w.AddInt32(18, 0);
-        w.AddInt32(19, 0);
-        w.AddFloat(21, 0);
-        w.AddFloat(22, 0);
+        w.AddInt32(18, vulnerability);
+        w.AddInt32(19, experience); // Current role XP
+        w.AddFloat(21, staggerDuration);
+        w.AddFloat(22, staggerDuration);
         w.AddEmptyList(25); // Status effects
         w.AddBool(26, false);
-        w.AddFloat(28, 0);
-        w.AddInt32(29, initialized ? health : 0);
-        w.AddInt32(30, 0);
-        w.AddFloat(31, ReadStat(stats, "damage"));
-        w.AddFloat(32, ReadStat(stats, "attack"));
-        w.AddInt32(33, 1); // Effective level
+        w.AddFloat(28, maxStaggerDuration);
+        w.AddInt32(29, maxHealth);
+        w.AddInt32(30, maxVulnerability);
+        w.AddFloat(31, damage);
+        w.AddFloat(32, attack);
+        w.AddInt32(33, level); // Effective level
         w.AddEmptyList(34);
         w.AddBool(35, false);
         w.AddUInt32(36, role);
@@ -468,33 +546,57 @@ internal static class CharacterEntities
 
     internal static int StartingHealth(Dictionary<string, string> stats) => (int)ReadStat(stats, "health");
 
-    internal static byte[] ZSyncSnapshot((float X, float Y, float Z) position, long transformOwner, long? attachment = null)
+    internal static byte[] ZSyncSnapshot((float X, float Y, float Z) position, long transformOwner, long? attachment = null,
+        uint rotation = 0xDFF7FDFF, double timestamp = 0,
+        ((float X, float Y, float Z) End, float Speed)? motion = null, int attachmentPath = 3)
     {
         var w = new SchemaWriter();
-        w.AddObject(1, v => Vector(v, position.X, position.Y, position.Z));
-        w.AddUInt32(2, 0xDFF7FDFF); // Compressed identity rotation.
+        WriteZSyncPose(w, position, rotation);
         w.AddObject(3, v => Vector(v, 1, 1, 1));
         if (attachment is { } parentId)
             w.AddObject(4, parent =>
             {
                 parent.AddEntityId(1, parentId);
                 parent.AddString(2, null);
-                parent.AddInt32(3, 3); // Captured attachment path for the bow and arrow.
+                parent.AddInt32(3, attachmentPath);
             }, isOption: true);
         else w.AddEmptyOption(4);
-        w.AddDouble(5, 0); // Remote timestamp
+        w.AddDouble(5, timestamp);
         w.AddEntityId(6, transformOwner);
-        w.AddEmptyOption(7); // Linear motion
+        if (motion is { } path) WriteLinearMotion(w, path.End, timestamp, path.Speed);
+        else w.AddEmptyOption(7);
         return w.ToArray();
     }
 
-    internal static byte[] PlayerLifecycle(uint state, (float X, float Y, float Z) position)
+    internal static void WriteLinearMotion(SchemaWriter writer, (float X, float Y, float Z) end, double timestamp, float speed) =>
+        writer.AddObject(7, motion =>
+        {
+            motion.AddObject(1, v => Vector(v, end.X, end.Y, end.Z));
+            motion.AddDouble(2, timestamp);
+            motion.AddFloat(3, speed);
+        }, isOption: true);
+
+    internal static void WriteZSyncPose(SchemaWriter writer, (float X, float Y, float Z) position, uint rotation)
+    {
+        writer.AddObject(1, v => Vector(v, position.X, position.Y, position.Z));
+        writer.AddUInt32(2, rotation);
+    }
+
+    internal static byte[] PlayerLifecycle(uint state, (float X, float Y, float Z)? tether)
     {
         var writer = new SchemaWriter();
         writer.AddUInt32(1, state);
-        writer.AddObject(2, v => Vector(v, position.X, position.Y, position.Z), isOption: true);
+        WriteDeathTether(writer, tether);
         writer.AddEmptyList(3); // Recoverers
         return writer.ToArray();
+    }
+
+    internal static void WriteDeathTether(SchemaWriter writer, (float X, float Y, float Z)? tether)
+    {
+        if (tether is { } position)
+            writer.AddObject(2, v => Vector(v, position.X, position.Y, position.Z), isOption: true);
+        else
+            writer.AddEmptyOption(2);
     }
 
     private static float ReadStat(Dictionary<string, string> stats, string name, string fallback = "0") =>

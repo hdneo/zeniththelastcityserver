@@ -1,0 +1,1240 @@
+[
+  {
+    "prefab": "09564d7cc0469a14d975d89a8cf48ab3",
+    "exit": [842.1399, 137.7102, 18.1864],
+    "stages": [
+      {
+        "name": "Threshold Skirmish",
+        "prefab": "PublicEvent-Skirmish",
+        "quest": "PublicEvent_Threshold_SkirmishWaves",
+        "anchorId": "0ed3779e-0ec4-432b-8bf9-c95849409f43",
+        "anchorPosition": [560.1944, 101.6803, 87.941],
+        "center": [559.1493, 106.5201, 86.6667],
+        "radius": 62.0,
+        "trigger": [506.1972, 104.1863, 105.4745],
+        "triggerRadius": 20,
+        "checkpoint": [506.1972, 104.1863, 105.4745],
+        "startSignals": [
+          "EnablePE"
+        ],
+        "clearSignal": null,
+        "waves": [
+          {
+            "delayMs": 1000,
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [580.3317, 106.7644, 93.4681]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Gunner",
+                "position": [569.9716, 106.765, 64.5936]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [576.704, 106.7945, 86.3976]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Brute",
+                "position": [570.4395, 106.821, 73.369]
+              }
+            ]
+          },
+          {
+            "delayMs": 2000,
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [590.8806, 106.7605, 90.1296]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Gunner",
+                "position": [581.7525, 106.8062, 64.5973]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [579.4646, 106.7128, 59.0581]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Brute",
+                "position": [592.6336, 106.6601, 95.7872]
+              }
+            ]
+          },
+          {
+            "delayMs": 2000,
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [612.0682, 109.8838, 66.2386]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Gunner",
+                "position": [599.7157, 109.8838, 54.0347]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [612.1856, 109.8838, 70.2996]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Brute",
+                "position": [613.6372, 109.8838, 86.7838]
+              }
+            ]
+          },
+          {
+            "delayMs": 2000,
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [613.5047, 109.8838, 85.1104]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Gunner",
+                "position": [597.8645, 109.8901, 53.4779]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [590.0378, 106.8273, 67.6301]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Brute",
+                "position": [597.3689, 106.7903, 82.3793]
+              }
+            ]
+          }
+        ],
+        "navigationId": "finale-2-threshold"
+      },
+      {
+        "name": "Pinnacle — Avatar of Telos",
+        "prefab": "PublicEvent_Reimagined_Pinnacle_Small_MiniBossA",
+        "quest": "PublicEvent_Reimagined_Pinnacle_Small_MiniBossA",
+        "anchorId": "d2b97350-dce5-49e0-a38a-3aabc2bfe411",
+        "anchorPosition": [805.7349, 140.4602, 20.1881],
+        "center": [805.7349, 140.4602, 20.1881],
+        "radius": 80.0,
+        "trigger": [805.7349, 140.4602, 20.1881],
+        "triggerRadius": 25,
+        "checkpoint": [783.1261, 141.1102, 18.8273],
+        "startSignals": [
+          "StartPinnacleEvent",
+          "StartPinnacleTelosA"
+        ],
+        "clearSignal": "BossKilled",
+        "waves": [
+          {
+            "delayMs": 5000,
+            "spawns": [
+              {
+                "prefab": "EnemyBase_AvatarOfTelos_Desert_A",
+                "position": [805.7349, 140.4602, 20.1881]
+              }
+            ]
+          }
+        ],
+        "boss": true,
+        "navigationId": "finale-2-pinnacle"
+      }
+    ]
+  },
+  {
+    "prefab": "22779e6a6e2a51447896acf6533db628",
+    "exit": [593.1555, 104.9103, -47.9485],
+    "stages": [
+      {
+        "name": "Threshold Gate",
+        "prefab": "PublicEvent_Reimagined_Collect_Gate",
+        "quest": "PublicEvent_Reimagined_Collect",
+        "anchorId": "0ed3779e-0ec4-432b-8bf9-c95849409f43",
+        "anchorPosition": [374.9941, 52.4603, -108.4709],
+        "center": [343.1124, 57.6603, -110.2265],
+        "radius": 80.0,
+        "trigger": [327.0938, 62.2503, -110.1472],
+        "triggerRadius": 20,
+        "checkpoint": [327.0938, 62.2503, -110.1472],
+        "startSignals": [
+          "EnablePE"
+        ],
+        "clearSignal": "EnableSecondPE",
+        "waves": [],
+        "collection": {
+          "collector": [354.4772, 59.6603, -109.6007],
+          "orbs": [
+            [358.0979, 59.6603, -103.6386],
+            [350.9051, 59.6603, -103.9306],
+            [358.6556, 59.6603, -114.894],
+            [351.6923, 59.6603, -115.2614]
+          ]
+        }
+      },
+      {
+        "name": "Threshold Soul Collection",
+        "prefab": "PublicEvent_Reimagined_Collect",
+        "quest": "PublicEvent_Reimagined_Collect",
+        "anchorId": "0ed3779e-0ec4-432b-8bf9-c95849409f43",
+        "anchorPosition": [374.9941, 52.4603, -108.4709],
+        "center": [367.6053, 57.7603, -108.8778],
+        "radius": 90.0,
+        "trigger": [367.6053, 57.7603, -108.8778],
+        "triggerRadius": 20,
+        "checkpoint": [327.0938, 62.2503, -110.1472],
+        "startSignals": [],
+        "clearSignal": "EndPE",
+        "waves": [],
+        "collection": {
+          "collector": [401.7836, 65.4703, -106.9957],
+          "orbs": [
+            [446.6009, 64.7203, -104.6239],
+            [399.7402, 63.2822, -70.4528],
+            [403.7991, 63.3144, -143.8166],
+            [371.493, 59.7023, -108.6737]
+          ]
+        }
+      },
+      {
+        "name": "Pinnacle — Avatar of Telos",
+        "prefab": "PublicEvent_Reimagined_Pinnacle_Small_MiniBossA",
+        "quest": "PublicEvent_Reimagined_Pinnacle_Small_MiniBossA",
+        "anchorId": "d2b97350-dce5-49e0-a38a-3aabc2bfe411",
+        "anchorPosition": [560.5917, 107.6603, -64.3478],
+        "center": [560.5917, 107.6603, -64.3478],
+        "radius": 80.0,
+        "trigger": [560.5917, 107.6603, -64.3478],
+        "triggerRadius": 25,
+        "checkpoint": [541.6656, 108.3103, -76.7902],
+        "startSignals": [
+          "StartPinnacleEvent",
+          "StartPinnacleTelosA"
+        ],
+        "clearSignal": "BossKilled",
+        "waves": [
+          {
+            "delayMs": 5000,
+            "spawns": [
+              {
+                "prefab": "EnemyBase_AvatarOfTelos_Desert_A",
+                "position": [563.0, 99.49, -65.0]
+              }
+            ]
+          }
+        ],
+        "boss": true,
+        "navigationId": "finale-4-pinnacle"
+      }
+    ]
+  },
+  {
+    "prefab": "ac1077e48ed37c949b5b88d84c316492",
+    "exit": [924.9569, 121.6385, -481.9443],
+    "stages": [
+      {
+        "name": "Threshold Gate",
+        "prefab": "PublicEvent_Reimagined_Collect_Gate",
+        "quest": "PublicEvent_Reimagined_Collect",
+        "anchorId": "0ed3779e-0ec4-432b-8bf9-c95849409f43",
+        "anchorPosition": [773.7342, 78.6184, -334.5993],
+        "center": [744.3918, 83.8184, -322.0078],
+        "radius": 80.0,
+        "trigger": [730.0761, 88.4084, -314.82],
+        "triggerRadius": 20,
+        "checkpoint": [730.0761, 88.4084, -314.82],
+        "startSignals": [
+          "EnablePE"
+        ],
+        "clearSignal": "EnableSecondPE",
+        "waves": [],
+        "collection": {
+          "collector": [754.8514, 85.8184, -326.4963],
+          "orbs": [
+            [760.7439, 85.8184, -322.7635],
+            [754.1702, 85.8184, -319.8294],
+            [756.243, 85.8184, -333.0948],
+            [749.8414, 85.8184, -330.3303]
+          ]
+        }
+      },
+      {
+        "name": "Threshold Soul Collection",
+        "prefab": "PublicEvent_Reimagined_Collect",
+        "quest": "PublicEvent_Reimagined_Collect",
+        "anchorId": "0ed3779e-0ec4-432b-8bf9-c95849409f43",
+        "anchorPosition": [773.7342, 78.6184, -334.5993],
+        "center": [766.9339, 83.9184, -331.6812],
+        "radius": 90.0,
+        "trigger": [766.9339, 83.9184, -331.6812],
+        "triggerRadius": 20,
+        "checkpoint": [730.0761, 88.4084, -314.82],
+        "startSignals": [],
+        "clearSignal": "EndPE",
+        "waves": [],
+        "collection": {
+          "collector": [798.39, 91.6284, -345.1796],
+          "orbs": [
+            [839.5951, 90.8784, -362.9662],
+            [812.7946, 89.4403, -311.5334],
+            [783.837, 89.4725, -379.0625],
+            [770.5075, 85.8604, -333.2255]
+          ]
+        }
+      },
+      {
+        "name": "Pinnacle — Avatar of Telos",
+        "prefab": "PublicEvent_Reimagined_Pinnacle_Small_MiniBossA",
+        "quest": "PublicEvent_Reimagined_Pinnacle_Small_MiniBossA",
+        "anchorId": "d2b97350-dce5-49e0-a38a-3aabc2bfe411",
+        "anchorPosition": [906.1696, 124.3885, -450.6974],
+        "center": [906.1696, 124.3885, -450.6974],
+        "radius": 80.0,
+        "trigger": [906.1696, 124.3885, -450.6974],
+        "triggerRadius": 25,
+        "checkpoint": [892.3474, 125.0385, -432.7542],
+        "startSignals": [
+          "StartPinnacleEvent",
+          "StartPinnacleTelosA"
+        ],
+        "clearSignal": "BossKilled",
+        "waves": [
+          {
+            "delayMs": 5000,
+            "spawns": [
+              {
+                "prefab": "EnemyBase_AvatarOfTelos_Desert_A",
+                "position": [905.5, 116.36, -453.5]
+              }
+            ]
+          }
+        ],
+        "boss": true,
+        "navigationId": "finale-5-pinnacle"
+      }
+    ]
+  },
+  {
+    "prefab": "bc2272ec53bab16418018281029bc2a7",
+    "exit": [889.7191, 135.0982, -320.7574],
+    "stages": [
+      {
+        "name": "Threshold Gate",
+        "prefab": "PublicEvent_Reimagined_Collect_Gate",
+        "quest": "PublicEvent_Reimagined_Collect",
+        "anchorId": "0ed3779e-0ec4-432b-8bf9-c95849409f43",
+        "anchorPosition": [627.9555, 92.0782, -232.1917],
+        "center": [596.9918, 97.2782, -224.3958],
+        "radius": 80.0,
+        "trigger": [581.7201, 101.8682, -219.5608],
+        "triggerRadius": 20,
+        "checkpoint": [581.7201, 101.8682, -219.5608],
+        "startSignals": [
+          "EnablePE"
+        ],
+        "clearSignal": "EnableSecondPE",
+        "waves": [],
+        "collection": {
+          "collector": [608.0293, 99.2782, -227.1748],
+          "orbs": [
+            [613.2579, 99.2782, -222.5576],
+            [606.3031, 99.2782, -220.6994],
+            [610.4463, 99.2782, -233.4705],
+            [603.6883, 99.2782, -231.7524]
+          ]
+        }
+      },
+      {
+        "name": "Threshold Soul Collection",
+        "prefab": "PublicEvent_Reimagined_Collect",
+        "quest": "PublicEvent_Reimagined_Collect",
+        "anchorId": "0ed3779e-0ec4-432b-8bf9-c95849409f43",
+        "anchorPosition": [627.9555, 92.0782, -232.1917],
+        "center": [620.7794, 97.3782, -230.385],
+        "radius": 90.0,
+        "trigger": [620.7794, 97.3782, -230.385],
+        "triggerRadius": 20,
+        "checkpoint": [581.7201, 101.8682, -219.5608],
+        "startSignals": [],
+        "clearSignal": "EndPE",
+        "waves": [],
+        "collection": {
+          "collector": [653.9735, 105.0882, -238.7424],
+          "orbs": [
+            [697.4718, 104.3382, -249.7932],
+            [662.8795, 102.9002, -203.2425],
+            [644.9584, 102.9322, -274.4995],
+            [624.5522, 99.3202, -231.3451]
+          ]
+        }
+      },
+      {
+        "name": "Pinnacle — Avatar of Telos",
+        "prefab": "PublicEvent_Reimagined_Pinnacle_Small_MiniBossA",
+        "quest": "PublicEvent_Reimagined_Pinnacle_Small_MiniBossA",
+        "anchorId": "d2b97350-dce5-49e0-a38a-3aabc2bfe411",
+        "anchorPosition": [854.2104, 137.8481, -312.4829],
+        "center": [854.2104, 137.8481, -312.4829],
+        "radius": 80.0,
+        "trigger": [854.2104, 137.8481, -312.4829],
+        "triggerRadius": 25,
+        "checkpoint": [831.7075, 138.4981, -309.9088],
+        "startSignals": [
+          "StartPinnacleEvent",
+          "StartPinnacleTelosA"
+        ],
+        "clearSignal": "BossKilled",
+        "waves": [
+          {
+            "delayMs": 5000,
+            "spawns": [
+              {
+                "prefab": "EnemyBase_AvatarOfTelos_Desert_A",
+                "position": [856.0, 129.76, -314.5]
+              }
+            ]
+          }
+        ],
+        "boss": true,
+        "navigationId": "finale-9-pinnacle"
+      }
+    ]
+  },
+  {
+    "prefab": "f49a73445471b9d4c894e0959a8d4825",
+    "exit": [763.764, 110.2117, -365.7983],
+    "stages": [
+      {
+        "name": "Threshold Skirmish",
+        "prefab": "PublicEvent_Reimagined_Threshold_Skirmish_Winter",
+        "quest": "PublicEvent_Reimagined_Threshold_Skirmish_Winter",
+        "anchorId": "0ed3779e-0ec4-432b-8bf9-c95849409f43",
+        "anchorPosition": [590.3387, 80.5119, -200.419],
+        "center": [604.1143, 85.4859, -216.4827],
+        "radius": 80.0,
+        "trigger": [561.7207, 82.1219, -174.5977],
+        "triggerRadius": 20,
+        "checkpoint": [561.7207, 82.1219, -174.5977],
+        "startSignals": [
+          "EnablePE"
+        ],
+        "clearSignal": null,
+        "waves": [
+          {
+            "delayMs": 3000,
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidMelee",
+                "position": [593.7836, 86.1259, -222.0663]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidGunner",
+                "position": [611.2827, 86.4263, -208.4112]
+              },
+              {
+                "prefab": "EnemyBase-EssenceWolf-Reimagined",
+                "position": [609.2105, 86.0771, -209.5887]
+              }
+            ]
+          },
+          {
+            "delayMs": 2000,
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidMelee",
+                "position": [583.9998, 85.3342, -212.1127]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidGunner",
+                "position": [594.6591, 85.2576, -219.276]
+              },
+              {
+                "prefab": "EnemyBase-EssenceWolf-Reimagined",
+                "position": [615.1114, 86.3707, -192.8224]
+              }
+            ]
+          },
+          {
+            "delayMs": 2000,
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidMelee",
+                "position": [626.3742, 88.9177, -204.9167]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidGunner",
+                "position": [595.0182, 88.9177, -239.224]
+              },
+              {
+                "prefab": "EnemyBase-EssenceWolf-Reimagined",
+                "position": [596.3928, 88.9177, -239.3542]
+              }
+            ]
+          },
+          {
+            "delayMs": 2000,
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidMelee",
+                "position": [627.2897, 88.9177, -206.2856]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidGunner",
+                "position": [611.3553, 87.8658, -222.8753]
+              },
+              {
+                "prefab": "EnemyBase-EssenceWolf-Reimagined",
+                "position": [615.4276, 85.9929, -194.9962]
+              }
+            ]
+          },
+          {
+            "delayMs": 2000,
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidMelee",
+                "position": [604.2827, 89.1686, -235.1782]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidGunner",
+                "position": [577.6429, 85.4648, -221.3335]
+              },
+              {
+                "prefab": "EnemyBase-EssenceWolf-Reimagined",
+                "position": [624.0031, 89.058, -214.5963]
+              }
+            ]
+          }
+        ],
+        "navigationId": "finale-14-threshold"
+      },
+      {
+        "name": "Pinnacle — Avatar of Telos",
+        "prefab": "PublicEvent_Reimagined_Pinnacle_Small_MiniBossA",
+        "quest": "PublicEvent_Reimagined_Pinnacle_Small_MiniBossA",
+        "anchorId": "d2b97350-dce5-49e0-a38a-3aabc2bfe411",
+        "anchorPosition": [736.71, 112.9617, -341.3564],
+        "center": [736.71, 112.9617, -341.3564],
+        "radius": 80.0,
+        "trigger": [736.71, 112.9617, -341.3564],
+        "triggerRadius": 25,
+        "checkpoint": [715.92, 113.9317, -322.6007],
+        "startSignals": [
+          "StartPinnacleEvent",
+          "StartPinnacleTelosA"
+        ],
+        "clearSignal": "BossKilled",
+        "waves": [
+          {
+            "delayMs": 5000,
+            "spawns": [
+              {
+                "prefab": "EnemyBase_AvatarOfTelos_Desert_A",
+                "position": [736.71, 112.9617, -341.3564]
+              }
+            ]
+          }
+        ],
+        "boss": true,
+        "navigationId": "finale-14-pinnacle"
+      }
+    ]
+  },
+  {
+    "prefab": "964e23d182cec1a4f9928ce9b6dcb8d0",
+    "exit": [535.9296, 80.7622, -626.0211],
+    "stages": [
+      {
+        "name": "Threshold Skirmish",
+        "prefab": "PublicEvent_Reimagined_Threshold_Skirmish_Winter",
+        "quest": "PublicEvent_Reimagined_Threshold_Skirmish_Winter",
+        "anchorId": "0ed3779e-0ec4-432b-8bf9-c95849409f43",
+        "anchorPosition": [362.8349, 49.3122, -464.9253],
+        "center": [372.5734, 54.2862, -483.7129],
+        "radius": 80.0,
+        "trigger": [340.8778, 50.9222, -433.2456],
+        "triggerRadius": 20,
+        "checkpoint": [340.8778, 50.9222, -433.2456],
+        "startSignals": [
+          "EnablePE"
+        ],
+        "clearSignal": null,
+        "waves": [
+          {
+            "delayMs": 3000,
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidMelee",
+                "position": [361.2399, 54.9262, -486.787]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidGunner",
+                "position": [381.3972, 55.2265, -477.4939]
+              },
+              {
+                "prefab": "EnemyBase-EssenceWolf-Reimagined",
+                "position": [379.1107, 54.8774, -478.1665]
+              }
+            ]
+          },
+          {
+            "delayMs": 2000,
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidMelee",
+                "position": [353.9906, 54.1345, -474.8603]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidGunner",
+                "position": [362.73, 54.0578, -484.2707]
+              },
+              {
+                "prefab": "EnemyBase-EssenceWolf-Reimagined",
+                "position": [388.6882, 55.171, -463.1932]
+              }
+            ]
+          },
+          {
+            "delayMs": 2000,
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidMelee",
+                "position": [396.888, 57.718, -477.542]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidGunner",
+                "position": [358.5193, 57.7179, -503.7726]
+              },
+              {
+                "prefab": "EnemyBase-EssenceWolf-Reimagined",
+                "position": [359.8278, 57.7179, -504.2135]
+              }
+            ]
+          },
+          {
+            "delayMs": 2000,
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidMelee",
+                "position": [397.4662, 57.718, -479.084]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidGunner",
+                "position": [378.1613, 56.6661, -491.5916]
+              },
+              {
+                "prefab": "EnemyBase-EssenceWolf-Reimagined",
+                "position": [388.4991, 54.7932, -465.3817]
+              }
+            ]
+          },
+          {
+            "delayMs": 2000,
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidMelee",
+                "position": [368.4635, 57.9689, -501.9518]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidGunner",
+                "position": [345.6941, 54.265, -482.3837]
+              },
+              {
+                "prefab": "EnemyBase-EssenceWolf-Reimagined",
+                "position": [392.3668, 57.8582, -486.4232]
+              }
+            ]
+          }
+        ],
+        "navigationId": "finale-16-threshold"
+      },
+      {
+        "name": "Pinnacle — Avatar of Telos",
+        "prefab": "PublicEvent_Reimagined_Pinnacle_Small_MiniBossA",
+        "quest": "PublicEvent_Reimagined_Pinnacle_Small_MiniBossA",
+        "anchorId": "d2b97350-dce5-49e0-a38a-3aabc2bfe411",
+        "anchorPosition": [502.9432, 83.5122, -610.4895],
+        "center": [502.9432, 83.5122, -610.4895],
+        "radius": 80.0,
+        "trigger": [502.9432, 83.5122, -610.4895],
+        "triggerRadius": 25,
+        "checkpoint": [481.4793, 84.1622, -603.2569],
+        "startSignals": [
+          "StartPinnacleEvent",
+          "StartPinnacleTelosA"
+        ],
+        "clearSignal": "BossKilled",
+        "waves": [
+          {
+            "delayMs": 5000,
+            "spawns": [
+              {
+                "prefab": "EnemyBase_AvatarOfTelos_Desert_A",
+                "position": [502.9432, 83.5122, -610.4895]
+              }
+            ]
+          }
+        ],
+        "boss": true,
+        "navigationId": "finale-16-pinnacle"
+      }
+    ]
+  },
+  {
+    "prefab": "7618d8a9f8ebe9b4581c5a861d4f69de",
+    "exit": [1037.6084, 118.8203, -239.25],
+    "stages": [
+      {
+        "name": "Threshold Skirmish",
+        "prefab": "PublicEvent-Skirmish",
+        "quest": "PublicEvent_Threshold_SkirmishWaves",
+        "anchorId": "0ed3779e-0ec4-432b-8bf9-c95849409f43",
+        "anchorPosition": [755.144, 84.5404, -181.1167],
+        "center": [754.288, 89.3802, -182.525],
+        "radius": 62.0,
+        "trigger": [699.2212, 87.0464, -171.3311],
+        "triggerRadius": 20,
+        "checkpoint": [699.2212, 87.0464, -171.3311],
+        "startSignals": [
+          "EnablePE"
+        ],
+        "clearSignal": null,
+        "waves": [
+          {
+            "delayMs": 1000,
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [774.3069, 89.6245, -172.8195]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Gunner",
+                "position": [768.0996, 89.6251, -202.8618]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [771.7069, 89.6546, -180.3289]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Brute",
+                "position": [767.3319, 89.6811, -194.1075]
+              }
+            ]
+          },
+          {
+            "delayMs": 2000,
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [785.2199, 89.6206, -174.6452]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Gunner",
+                "position": [779.7635, 89.6663, -201.2056]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [778.2753, 89.5729, -207.0109]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Brute",
+                "position": [786.1619, 89.5202, -168.7976]
+              }
+            ]
+          },
+          {
+            "delayMs": 2000,
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [809.5492, 92.7439, -195.3279]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Gunner",
+                "position": [799.0308, 92.7439, -209.1439]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [809.0959, 92.7439, -191.2905]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Brute",
+                "position": [808.2207, 92.7439, -174.7657]
+              }
+            ]
+          },
+          {
+            "delayMs": 2000,
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [808.3243, 92.7439, -176.4412]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Gunner",
+                "position": [797.276, 92.7502, -209.9549]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Melee",
+                "position": [787.5415, 89.6874, -197.0404]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-Desert-Gnasher-Brute",
+                "position": [792.7311, 89.6504, -181.4087]
+              }
+            ]
+          }
+        ],
+        "navigationId": "finale-18-threshold"
+      },
+      {
+        "name": "Pinnacle — Avatar of Telos",
+        "prefab": "PublicEvent_Reimagined_Pinnacle_Small_MiniBossA",
+        "quest": "PublicEvent_Reimagined_Pinnacle_Small_MiniBossA",
+        "anchorId": "d2b97350-dce5-49e0-a38a-3aabc2bfe411",
+        "anchorPosition": [1002.4298, 121.5703, -229.669],
+        "center": [1002.4298, 121.5703, -229.669],
+        "radius": 80.0,
+        "trigger": [1002.4298, 121.5703, -229.669],
+        "triggerRadius": 25,
+        "checkpoint": [975.4086, 122.5403, -222.3304],
+        "startSignals": [
+          "StartPinnacleEvent",
+          "StartPinnacleTelosA"
+        ],
+        "clearSignal": "BossKilled",
+        "waves": [
+          {
+            "delayMs": 5000,
+            "spawns": [
+              {
+                "prefab": "EnemyBase_AvatarOfTelos_Desert_A",
+                "position": [1002.4298, 121.5703, -229.669]
+              }
+            ]
+          }
+        ],
+        "boss": true,
+        "navigationId": "finale-18-pinnacle"
+      }
+    ]
+  },
+  {
+    "prefab": "3b81fe8579b240a44ad6e5eb4e2487ac",
+    "exit": [698.9691, 89.5946, 35.8065],
+    "stages": [
+      {
+        "name": "Threshold Gate",
+        "prefab": "PublicEvent_Reimagined_Collect_Gate",
+        "quest": "PublicEvent_Reimagined_Collect",
+        "anchorId": "0ed3779e-0ec4-432b-8bf9-c95849409f43",
+        "anchorPosition": [478.2006, 37.1446, 11.9839],
+        "center": [446.62, 42.3446, 16.6946],
+        "radius": 80.0,
+        "trigger": [430.9466, 46.9346, 20.0031],
+        "triggerRadius": 20,
+        "checkpoint": [430.9466, 46.9346, 20.0031],
+        "startSignals": [
+          "EnablePE"
+        ],
+        "clearSignal": "EnableSecondPE",
+        "waves": [],
+        "collection": {
+          "collector": [457.8774, 44.3446, 15.0154],
+          "orbs": [
+            [462.6262, 44.3445, 20.1247],
+            [455.5223, 44.3445, 21.2895],
+            [460.9023, 44.3446, 8.9882],
+            [454.008, 44.3446, 10.0327]
+          ]
+        }
+      },
+      {
+        "name": "Threshold Soul Collection",
+        "prefab": "PublicEvent_Reimagined_Collect",
+        "quest": "PublicEvent_Reimagined_Collect",
+        "anchorId": "0ed3779e-0ec4-432b-8bf9-c95849409f43",
+        "anchorPosition": [478.2006, 37.1446, 11.9839],
+        "center": [470.8816, 42.4446, 13.0757],
+        "radius": 90.0,
+        "trigger": [470.8816, 42.4446, 13.0757],
+        "triggerRadius": 20,
+        "checkpoint": [430.9466, 46.9346, 20.0031],
+        "startSignals": [],
+        "clearSignal": "EndPE",
+        "waves": [],
+        "collection": {
+          "collector": [504.7371, 50.1546, 8.0257],
+          "orbs": [
+            [549.1117, 49.4046, 1.3095],
+            [510.106, 47.9665, 44.2298],
+            [499.2848, 47.9986, -28.445],
+            [474.7305, 44.3866, 12.4914]
+          ]
+        }
+      },
+      {
+        "name": "Pinnacle — Avatar of Telos",
+        "prefab": "PublicEvent_Reimagined_Pinnacle_Small_MiniBossA",
+        "quest": "PublicEvent_Reimagined_Pinnacle_Small_MiniBossA",
+        "anchorId": "d2b97350-dce5-49e0-a38a-3aabc2bfe411",
+        "anchorPosition": [664.8209, 92.3446, 23.0304],
+        "center": [664.8209, 92.3446, 23.0304],
+        "radius": 80.0,
+        "trigger": [664.8209, 92.3446, 23.0304],
+        "triggerRadius": 25,
+        "checkpoint": [644.6585, 92.9946, 12.711],
+        "startSignals": [
+          "StartPinnacleEvent",
+          "StartPinnacleTelosA"
+        ],
+        "clearSignal": "BossKilled",
+        "waves": [
+          {
+            "delayMs": 5000,
+            "spawns": [
+              {
+                "prefab": "EnemyBase_AvatarOfTelos_Desert_A",
+                "position": [667.5, 84.31, 22.0]
+              }
+            ]
+          }
+        ],
+        "boss": true,
+        "navigationId": "finale-21-pinnacle"
+      }
+    ]
+  },
+  {
+    "prefab": "021557ba25c35e74cab1e7acde04198e",
+    "exit": [627.4438, 63.7322, -8.0389],
+    "stages": [
+      {
+        "name": "Threshold Skirmish",
+        "prefab": "PublicEvent_Reimagined_Threshold_Skirmish_Winter",
+        "quest": "PublicEvent_Reimagined_Threshold_Skirmish_Winter",
+        "anchorId": "0ed3779e-0ec4-432b-8bf9-c95849409f43",
+        "anchorPosition": [357.5576, 22.855, -8.1569],
+        "center": [378.6356, 27.829, -6.2786],
+        "radius": 80.0,
+        "trigger": [319.9143, 24.465, -16.4457],
+        "triggerRadius": 20,
+        "checkpoint": [319.9143, 24.465, -16.4457],
+        "startSignals": [
+          "EnablePE"
+        ],
+        "clearSignal": null,
+        "waves": [
+          {
+            "delayMs": 3000,
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidMelee",
+                "position": [377.1777, 28.4689, -17.9308]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidGunner",
+                "position": [376.2314, 28.7693, 4.2454]
+              },
+              {
+                "prefab": "EnemyBase-EssenceWolf-Reimagined",
+                "position": [375.9858, 28.4202, 1.8747]
+              }
+            ]
+          },
+          {
+            "delayMs": 2000,
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidMelee",
+                "position": [363.3919, 27.6773, -20.1104]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidGunner",
+                "position": [375.4153, 27.6006, -15.597]
+              },
+              {
+                "prefab": "EnemyBase-EssenceWolf-Reimagined",
+                "position": [365.7686, 28.7137, 16.419]
+              }
+            ]
+          },
+          {
+            "delayMs": 2000,
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidMelee",
+                "position": [382.1559, 31.2608, 18.5585]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidGunner",
+                "position": [391.8594, 31.2607, -26.8952]
+              },
+              {
+                "prefab": "EnemyBase-EssenceWolf-Reimagined",
+                "position": [392.764, 31.2607, -25.852]
+              }
+            ]
+          },
+          {
+            "delayMs": 2000,
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidMelee",
+                "position": [383.802, 31.2608, 18.5082]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidGunner",
+                "position": [388.0457, 30.2089, -4.0996]
+              },
+              {
+                "prefab": "EnemyBase-EssenceWolf-Reimagined",
+                "position": [367.7215, 28.336, 15.4133]
+              }
+            ]
+          },
+          {
+            "delayMs": 2000,
+            "spawns": [
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidMelee",
+                "position": [393.9495, 31.5117, -17.0041]
+              },
+              {
+                "prefab": "EnemyBase-Reimagined-SylphidGunner",
+                "position": [367.2031, 27.8078, -30.6417]
+              },
+              {
+                "prefab": "EnemyBase-EssenceWolf-Reimagined",
+                "position": [388.6563, 31.401, 11.0046]
+              }
+            ]
+          }
+        ],
+        "navigationId": "finale-22-threshold"
+      },
+      {
+        "name": "Pinnacle — Avatar of Telos",
+        "prefab": "PublicEvent_Reimagined_Pinnacle_Small_MiniBossA",
+        "quest": "PublicEvent_Reimagined_Pinnacle_Small_MiniBossA",
+        "anchorId": "d2b97350-dce5-49e0-a38a-3aabc2bfe411",
+        "anchorPosition": [592.9353, 66.4833, 3.7294],
+        "center": [592.9353, 66.4833, 3.7294],
+        "radius": 80.0,
+        "trigger": [592.9353, 66.4833, 3.7294],
+        "triggerRadius": 25,
+        "checkpoint": [570.8004, 67.1337, 8.5311],
+        "startSignals": [
+          "StartPinnacleEvent",
+          "StartPinnacleTelosA"
+        ],
+        "clearSignal": "BossKilled",
+        "waves": [
+          {
+            "delayMs": 5000,
+            "spawns": [
+              {
+                "prefab": "EnemyBase_AvatarOfTelos_Desert_A",
+                "position": [594.5, 58.41, 1.5]
+              }
+            ]
+          }
+        ],
+        "boss": true,
+        "navigationId": "finale-22-pinnacle"
+      }
+    ]
+  },
+  {
+    "prefab": "7b887548e731a834ab66f6df5e7fad37",
+    "exit": [-662.117, 121.3521, -122.4319],
+    "stages": [
+      {
+        "name": "Threshold Gate",
+        "prefab": "PublicEvent_Reimagined_Collect_Gate",
+        "quest": "PublicEvent_Reimagined_Collect",
+        "anchorId": "0ed3779e-0ec4-432b-8bf9-c95849409f43",
+        "anchorPosition": [-479.6981, 68.9021, 11.2769],
+        "center": [-451.2154, 74.1021, 25.7081],
+        "radius": 80.0,
+        "trigger": [-436.5178, 78.6921, 32.0786],
+        "triggerRadius": 20,
+        "checkpoint": [-436.5178, 78.6921, 32.0786],
+        "startSignals": [
+          "EnablePE"
+        ],
+        "clearSignal": "EnableSecondPE",
+        "waves": [],
+        "collection": {
+          "collector": [-461.3686, 76.1021, 20.5639],
+          "orbs": [
+            [-462.2853, 76.1021, 13.649],
+            [-455.8174, 76.1021, 16.8095],
+            [-467.3231, 76.1021, 23.7294],
+            [-461.0957, 76.1021, 26.8666]
+          ]
+        }
+      },
+      {
+        "name": "Threshold Soul Collection",
+        "prefab": "PublicEvent_Reimagined_Collect",
+        "quest": "PublicEvent_Reimagined_Collect",
+        "anchorId": "0ed3779e-0ec4-432b-8bf9-c95849409f43",
+        "anchorPosition": [-479.6981, 68.9021, 11.2769],
+        "center": [-473.0971, 74.2021, 14.6215],
+        "radius": 90.0,
+        "trigger": [-473.0971, 74.2021, 14.6215],
+        "triggerRadius": 20,
+        "checkpoint": [-436.5178, 78.6921, 32.0786],
+        "startSignals": [],
+        "clearSignal": "EndPE",
+        "waves": [],
+        "collection": {
+          "collector": [-503.6315, 81.9121, -0.8492],
+          "orbs": [
+            [-543.7095, 81.1621, -21.0477],
+            [-487.062, 79.7241, -33.4838],
+            [-520.2874, 79.7561, 32.051],
+            [-476.5743, 76.1441, 12.8709]
+          ]
+        }
+      },
+      {
+        "name": "Pinnacle Skirmish",
+        "prefab": "PublicEvent-Skirmish",
+        "quest": "PublicEvent_Pinnacle_SkirmishWaves",
+        "anchorId": "d2b97350-dce5-49e0-a38a-3aabc2bfe411",
+        "anchorPosition": [-633.3468, 124.1021, -100.0353],
+        "center": [-633.3468, 124.2821, -100.0353],
+        "radius": 50.0,
+        "trigger": [-633.3468, 124.1021, -100.0353],
+        "triggerRadius": 25,
+        "checkpoint": [-617.1894, 124.7521, -84.1624],
+        "startSignals": [
+          "StartPinnacleEvent"
+        ],
+        "clearSignal": null,
+        "waves": [
+          {
+            "delayMs": 5000,
+            "signal": "ActivateWave1Portals",
+            "endSignal": "DeactivateWave1Portals",
+            "spawns": [
+              {
+                "prefab": "EnemyBase-MeleeExiled-A-Reimagined",
+                "position": [-644.3653, 123.7521, -126.5956]
+              },
+              {
+                "prefab": "EnemyBase-RangedExiled-Reimagined",
+                "position": [-646.5796, 123.7521, -125.3792]
+              },
+              {
+                "prefab": "EnemyBase-MeleeExiled-A-Reimagined",
+                "position": [-648.6106, 123.7521, -123.8934]
+              },
+              {
+                "prefab": "EnemyBase-Ent-Forest-Reimagined",
+                "position": [-650.4943, 123.7521, -122.369]
+              }
+            ]
+          },
+          {
+            "delayMs": 2000,
+            "signal": "ActivateWave2Portals",
+            "endSignal": "DeactivateWave2Portals",
+            "spawns": [
+              {
+                "prefab": "EnemyBase-MeleeExiled-A-Reimagined",
+                "position": [-658.7285, 123.7521, -111.3032]
+              },
+              {
+                "prefab": "EnemyBase-RangedExiled-Reimagined",
+                "position": [-659.5512, 123.7521, -109.1556]
+              },
+              {
+                "prefab": "EnemyBase-MeleeExiled-A-Reimagined",
+                "position": [-660.2862, 123.7521, -107.1045]
+              },
+              {
+                "prefab": "EnemyBase-Ent-Forest-Reimagined",
+                "position": [-660.9834, 123.7521, -105.0367]
+              }
+            ]
+          },
+          {
+            "delayMs": 2000,
+            "signal": "ActivateWave3Portals",
+            "endSignal": "DeactivateWave3Portals",
+            "spawns": [
+              {
+                "prefab": "EnemyBase-MeleeExiled-A-Reimagined",
+                "position": [-631.5841, 123.7521, -130.4465]
+              },
+              {
+                "prefab": "EnemyBase-RangedExiled-Reimagined",
+                "position": [-634.324, 123.7521, -130.3617]
+              },
+              {
+                "prefab": "EnemyBase-MeleeExiled-A-Reimagined",
+                "position": [-662.2462, 123.7521, -95.3238]
+              },
+              {
+                "prefab": "EnemyBase-Ent-Forest-Reimagined",
+                "position": [-661.9235, 123.7521, -93.0196]
+              }
+            ]
+          },
+          {
+            "delayMs": 2000,
+            "signal": "ActivateWave4aPortals",
+            "endSignal": "DeactivateWave4aPortals",
+            "spawns": [
+              {
+                "prefab": "EnemyBase-MeleeExiled-A-Reimagined",
+                "position": [-626.1227, 123.7521, -130.3644]
+              },
+              {
+                "prefab": "EnemyBase-RangedExiled-Reimagined",
+                "position": [-628.6424, 123.7521, -130.3997]
+              },
+              {
+                "prefab": "EnemyBase-MeleeExiled-A-Reimagined",
+                "position": [-661.4108, 123.7521, -90.162]
+              },
+              {
+                "prefab": "EnemyBase-Ent-Forest-Reimagined",
+                "position": [-660.7514, 123.7521, -87.7857]
+              }
+            ]
+          }
+        ],
+        "navigationId": "finale-grove-pinnacle"
+      },
+      {
+        "name": "Pinnacle — Avatar of Telos",
+        "prefab": "PublicEvent-Skirmish",
+        "quest": "PublicEvent_Pinnacle_TelosA",
+        "anchorId": "d2b97350-dce5-49e0-a38a-3aabc2bfe411",
+        "anchorPosition": [-633.3468, 124.1021, -100.0353],
+        "center": [-652.285, 129.1021, -114.778],
+        "radius": 70.0,
+        "trigger": [-633.3468, 124.1021, -100.0353],
+        "triggerRadius": 25,
+        "checkpoint": [-617.1894, 124.7521, -84.1624],
+        "startSignals": [
+          "StartPinnacleTelosA"
+        ],
+        "clearSignal": "BossKilled",
+        "waves": [
+          {
+            "delayMs": 5000,
+            "spawns": [
+              {
+                "prefab": "EnemyBase_AvatarOfTelos_Desert_A",
+                "position": [-633.3468, 124.2021, -100.0353]
+              }
+            ]
+          }
+        ],
+        "boss": true,
+        "navigationId": "finale-grove-pinnacle"
+      }
+    ]
+  }
+]
